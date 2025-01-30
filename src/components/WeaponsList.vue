@@ -1,9 +1,6 @@
 <template>
   <div class="weapons-list">
     <h1>Список зброї</h1>
-    <div class="cart-indicator">
-      Товарів у кошику: {{ cart.length }}
-    </div>
     <div class="weapon-item" v-for="weapon in weapons" :key="weapon.id">
       <img :src="weapon.image" :alt="weapon.name" class="weapon-image" />
       <div class="weapon-details">
@@ -26,6 +23,13 @@
 <script>
 export default {
   name: 'WeaponsList',
+  props: {
+    cart: {
+      type: Array,
+      required: true,
+      default: () => [] // Встановлення дефолтного значення
+    }
+  },
   data() {
     return {
       weapons: [
@@ -53,16 +57,21 @@ export default {
           quantity: 3,
           image: require('@/assets/dragunov.jpg'),
         },
-      ],
-      cart: [],
+      ]
     };
   },
   methods: {
     addToCart(weapon) {
-      if (weapon.quantity > 0) {
-        this.cart.push({...weapon});
-        weapon.quantity--;
+      const existingItem = this.cart.find(item => item.id === weapon.id);
+      if (existingItem) {
+        existingItem.quantity++; // Збільшуємо кількість, якщо товар вже в кошику
+      } else {
+        this.$emit('add-to-cart', { ...weapon, quantity: 1 }); // Додаємо товар до кошика, якщо його ще немає
       }
+      weapon.quantity--; // Зменшуємо кількість на складі
+    },
+    isInCart(weapon) {
+      return this.cart.some(item => item.id === weapon.id);
     }
   }
 };
@@ -73,17 +82,6 @@ export default {
   display: flex;
   flex-direction: column;
   align-items: center;
-}
-
-.cart-indicator {
-  position: fixed;
-  top: 20px;
-  right: 20px;
-  padding: 10px 20px;
-  background-color: #2196F3;
-  color: white;
-  border-radius: 5px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
 }
 
 .weapon-item {
