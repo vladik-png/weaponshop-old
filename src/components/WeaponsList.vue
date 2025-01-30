@@ -1,6 +1,9 @@
 <template>
   <div class="weapons-list">
     <h1>Список зброї</h1>
+    <div class="cart-indicator">
+      Товарів у кошику: {{ cart.length }}
+    </div>
     <div class="weapon-item" v-for="weapon in weapons" :key="weapon.id">
       <img :src="weapon.image" :alt="weapon.name" class="weapon-image" />
       <div class="weapon-details">
@@ -8,6 +11,13 @@
         <p>{{ weapon.description }}</p>
         <p><strong>Ціна: </strong>{{ weapon.price }} грн</p>
         <p><strong>Кількість: </strong>{{ weapon.quantity }}</p>
+        <button 
+          @click="addToCart(weapon)" 
+          :disabled="weapon.quantity <= 0"
+          class="add-to-cart-btn"
+        >
+          Додати до кошика
+        </button>
       </div>
     </div>
   </div>
@@ -25,7 +35,7 @@ export default {
           description: 'Машинна гвинтівка, автоматичний режим стрільби.',
           price: 15000,
           quantity: 10,
-          image: require('@/assets/ak-47.jpg'), // Шлях до зображення
+          image: require('@/assets/ak-47.jpg'),
         },
         {
           id: 2,
@@ -44,8 +54,17 @@ export default {
           image: require('@/assets/dragunov.jpg'),
         },
       ],
+      cart: [],
     };
   },
+  methods: {
+    addToCart(weapon) {
+      if (weapon.quantity > 0) {
+        this.cart.push({...weapon});
+        weapon.quantity--;
+      }
+    }
+  }
 };
 </script>
 
@@ -54,6 +73,17 @@ export default {
   display: flex;
   flex-direction: column;
   align-items: center;
+}
+
+.cart-indicator {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  padding: 10px 20px;
+  background-color: #2196F3;
+  color: white;
+  border-radius: 5px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
 }
 
 .weapon-item {
@@ -83,5 +113,25 @@ export default {
 
 .weapon-details p {
   margin: 5px 0;
+}
+
+.add-to-cart-btn {
+  padding: 8px 16px;
+  margin-top: 10px;
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.add-to-cart-btn:hover {
+  background-color: #45a049;
+}
+
+.add-to-cart-btn:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
 }
 </style>
