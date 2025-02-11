@@ -1,4 +1,5 @@
 <template>
+<<<<<<< HEAD
     <footer class="footer">
       <div class="footer-container">
         <div class="footer-left">
@@ -16,6 +17,32 @@
       </div>
     </footer>
   </template>
+=======
+  <footer class="footer">
+    <div class="footer-container">
+      <div class="footer-left">
+        <img src="@/assets/logo.png" alt="Логотип" class="logo">
+        <span class="tagline">ЗА КРОК ДО ПРИГОД</span>
+      </div>
+      <div class="footer-center">
+        <p>Всі права захищені © 2025</p>
+      </div>
+      <div class="footer-right">
+        <a href="https://www.novaposhta.ua/" target="_blank" rel="noopener noreferrer">
+          <img src="@/assets/NovaPoshta.png" alt="Нова Пошта" class="icon">
+        </a>
+        <a href="https://www.visa.com" target="_blank" rel="noopener noreferrer">
+          <img src="@/assets/visa.svg" alt="Visa" class="icon">
+        </a>
+        <a href="https://www.mastercard.com" target="_blank" rel="noopener noreferrer">
+          <img src="@/assets/mastercard.svg" alt="Mastercard" class="icon">
+        </a>
+      </div>
+    </div>
+  </footer>
+</template>
+
+>>>>>>> front-end
   
   <style scoped>
   .footer {

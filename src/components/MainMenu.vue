@@ -19,6 +19,7 @@ export default {
     return {
       menuItems: [
 <<<<<<< HEAD
+<<<<<<< HEAD
         { id: 1, name: "Головна ", link: "/" },
 =======
 <<<<<<< HEAD
@@ -27,6 +28,9 @@ export default {
         { id: 1, name: "Головна ", link: "/" },
 >>>>>>> front-end
 >>>>>>> back-end
+=======
+        { id: 1, name: "Головна ", link: "/" },
+>>>>>>> front-end
         { id: 2, name: "Зброя", link: "/weapons" },
         { id: 3, name: "Про нас", link: "/about" },
         { id: 4, name: "Контакти", link: "/contact" },

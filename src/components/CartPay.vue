@@ -1,6 +1,9 @@
 <template>
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> front-end
   <div>
   <!-- Іконка кошика, яка використовує власне зображення -->
   <div class="cart-button" @click="toggleCart">
@@ -60,7 +63,11 @@ export default {
   position: fixed;
   bottom: 20px;
   right: 20px;
+<<<<<<< HEAD
   background-color: #45a049 ; /* Робимо фон прозорим, щоб тільки іконка була видна */
+=======
+  background-color: transparent; /* Робимо фон прозорим, щоб тільки іконка була видна */
+>>>>>>> front-end
   border: none;
   border-radius: 50%;
   width: 60px;
@@ -79,7 +86,11 @@ export default {
 }
 
 .cart-button:hover {
+<<<<<<< HEAD
   background-color: #00ff7b;
+=======
+  background-color: #45a049;
+>>>>>>> front-end
 }
 
 .cart-count {
@@ -119,6 +130,7 @@ export default {
 .cart-modal button:hover {
   background-color: #45a049;
 }
+<<<<<<< HEAD
 </style>
 =======
 =======
@@ -247,3 +259,6 @@ export default {
 =======
   </style>
 >>>>>>> back-end
+=======
+</style>
+>>>>>>> front-end

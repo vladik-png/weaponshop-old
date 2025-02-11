@@ -2,11 +2,29 @@
   <div class="weapons-list">
     <h1>Список зброї</h1>
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 =======
 >>>>>>> back-end
     
+=======
+    
+    <!-- Фільтр за категоріями -->
+    <div class="filters">
+      <select v-model="selectedCategory" @change="filterWeapons">
+        <option value="">Виберіть категорію</option>
+        <option v-for="category in categories" :key="category" :value="category">{{ category }}</option>
+      </select>
+
+      <select v-model="sortOrder" @change="sortWeapons">
+        <option value="name">Сортувати за назвою</option>
+        <option value="price">Сортувати за ціною</option>
+        <option value="quantity">Сортувати за кількістю</option>
+      </select>
+    </div>
+
+>>>>>>> front-end
     <!-- Покажемо повідомлення, якщо не вдалося завантажити зброю -->
     <div v-if="errorMessage" class="error-message">{{ errorMessage }}</div>
     
@@ -14,10 +32,14 @@
     <div v-if="weapons.length === 0 && !errorMessage" class="empty-message">Немає доступних товарів.</div>
     
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> front-end
 >>>>>>> back-end
     <div class="weapon-item" v-for="weapon in weapons" :key="weapon.id">
+=======
+    <div class="weapon-item" v-for="weapon in filteredWeapons" :key="weapon.id">
+>>>>>>> front-end
       <img :src="weapon.image" :alt="weapon.name" class="weapon-image" />
       <div class="weapon-details">
         <h2>{{ weapon.name }}</h2>
@@ -25,10 +47,13 @@
         <p><strong>Ціна: </strong>{{ weapon.price }} грн</p>
         <p><strong>Кількість: </strong>{{ weapon.quantity }}</p>
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 =======
 >>>>>>> back-end
+=======
+>>>>>>> front-end
         <button 
           @click="addToCart(weapon)" 
           :disabled="weapon.quantity <= 0"
@@ -37,9 +62,12 @@
           Додати до кошика
         </button>
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> front-end
 >>>>>>> back-end
+=======
+>>>>>>> front-end
       </div>
     </div>
   </div>
@@ -49,6 +77,9 @@
 export default {
   name: 'WeaponsList',
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> front-end
   props: {
     cart: {
       type: Array,
@@ -56,6 +87,7 @@ export default {
       default: () => [] // Встановлення дефолтного значення
     }
   },
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> back-end
@@ -82,6 +114,18 @@ export default {
     };
   },
 >>>>>>> back-end
+=======
+  data() {
+    return {
+      weapons: [],  // Список зброї
+      filteredWeapons: [], // Фільтрований список зброї
+      categories: ['Категорія 1', 'Категорія 2', 'Категорія 3'], // Категорії зброї
+      selectedCategory: '',
+      sortOrder: 'name', // Сортування за назвою за замовчуванням
+      errorMessage: null // Для зберігання повідомлення про помилку
+    };
+  },
+>>>>>>> front-end
   mounted() {
     fetch("http://localhost/weaponshop/php/get_weapons.php")
       .then(response => {
@@ -92,6 +136,10 @@ export default {
       })
       .then(data => {
         this.weapons = data;
+<<<<<<< HEAD
+=======
+        this.filteredWeapons = data; // Початково відображаємо всі товари
+>>>>>>> front-end
       })
       .catch(error => {
         this.errorMessage = "Не вдалося завантажити список зброї. Спробуйте пізніше."; // Виведемо повідомлення про помилку
@@ -108,6 +156,7 @@ export default {
       }
       weapon.quantity--; // Зменшуємо кількість на складі
     },
+<<<<<<< HEAD
     isInCart(weapon) {
       return this.cart.some(item => item.id === weapon.id);
     }
@@ -116,8 +165,28 @@ export default {
 =======
 >>>>>>> front-end
 >>>>>>> back-end
+=======
+    filterWeapons() {
+      if (this.selectedCategory) {
+        this.filteredWeapons = this.weapons.filter(weapon => weapon.category === this.selectedCategory);
+      } else {
+        this.filteredWeapons = this.weapons; // Якщо не вибрана категорія, показуємо всі товари
+      }
+    },
+    sortWeapons() {
+      if (this.sortOrder === 'name') {
+        this.filteredWeapons.sort((a, b) => a.name.localeCompare(b.name));
+      } else if (this.sortOrder === 'price') {
+        this.filteredWeapons.sort((a, b) => a.price - b.price);
+      } else if (this.sortOrder === 'quantity') {
+        this.filteredWeapons.sort((a, b) => a.quantity - b.quantity);
+      }
+    }
+  }
+>>>>>>> front-end
 };
 </script>
+
 
 <style scoped>
 .weapons-list {
@@ -155,10 +224,13 @@ export default {
   margin: 5px 0;
 }
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 =======
 >>>>>>> back-end
+=======
+>>>>>>> front-end
 
 .add-to-cart-btn {
   padding: 8px 16px;
@@ -192,7 +264,10 @@ export default {
   margin-top: 20px;
 }
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> front-end
 >>>>>>> back-end
+=======
+>>>>>>> front-end
 </style>
