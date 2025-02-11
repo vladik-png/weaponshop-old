@@ -3,7 +3,14 @@ import HomePage from '../components/HomePage.vue';
 import WeaponsList from '../components/WeaponsList.vue';
 import AboutUs from '../components/AboutUs.vue';
 import ContactPage from '../components/ContactPage.vue';
+<<<<<<< HEAD
 import CartPay from '../components/CartPay.vue';
+=======
+<<<<<<< HEAD
+=======
+import CartPay from '../components/CartPay.vue';
+>>>>>>> front-end
+>>>>>>> back-end
 
 const routes = [
   {
@@ -26,11 +33,20 @@ const routes = [
     name: 'Contact',
     component: ContactPage,
   },
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+=======
+>>>>>>> back-end
   {
     path: '/cart',
     name: 'Cart',
     component: CartPay,
   },
+<<<<<<< HEAD
+=======
+>>>>>>> front-end
+>>>>>>> back-end
 ];
 
 const router = createRouter({
@@ -38,4 +54,12 @@ const router = createRouter({
   routes,
 });
 
+<<<<<<< HEAD
 export default router;
+=======
+<<<<<<< HEAD
+export default router;
+=======
+export default router;
+>>>>>>> front-end
+>>>>>>> back-end

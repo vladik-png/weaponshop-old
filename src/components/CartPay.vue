@@ -1,5 +1,6 @@
 <template>
 <<<<<<< HEAD
+<<<<<<< HEAD
   <div>
   <!-- Іконка кошика, яка використовує власне зображення -->
   <div class="cart-button" @click="toggleCart">
@@ -120,6 +121,8 @@ export default {
 }
 </style>
 =======
+=======
+>>>>>>> back-end
     <div>
     <!-- Іконка кошика, яка використовує власне зображення -->
     <div class="cart-button" @click="toggleCart">
@@ -238,5 +241,9 @@ export default {
   .cart-modal button:hover {
     background-color: #45a049;
   }
+<<<<<<< HEAD
   </style>
 >>>>>>> front-end
+=======
+  </style>
+>>>>>>> back-end

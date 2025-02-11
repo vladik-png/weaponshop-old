@@ -1,6 +1,11 @@
 <template>
   <div class="weapons-list">
     <h1>Список зброї</h1>
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+=======
+>>>>>>> back-end
     
     <!-- Покажемо повідомлення, якщо не вдалося завантажити зброю -->
     <div v-if="errorMessage" class="error-message">{{ errorMessage }}</div>
@@ -8,6 +13,10 @@
     <!-- Покажемо повідомлення, якщо список зброї порожній -->
     <div v-if="weapons.length === 0 && !errorMessage" class="empty-message">Немає доступних товарів.</div>
     
+<<<<<<< HEAD
+=======
+>>>>>>> front-end
+>>>>>>> back-end
     <div class="weapon-item" v-for="weapon in weapons" :key="weapon.id">
       <img :src="weapon.image" :alt="weapon.name" class="weapon-image" />
       <div class="weapon-details">
@@ -15,6 +24,11 @@
         <p>{{ weapon.description }}</p>
         <p><strong>Ціна: </strong>{{ weapon.price }} грн</p>
         <p><strong>Кількість: </strong>{{ weapon.quantity }}</p>
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+=======
+>>>>>>> back-end
         <button 
           @click="addToCart(weapon)" 
           :disabled="weapon.quantity <= 0"
@@ -22,6 +36,10 @@
         >
           Додати до кошика
         </button>
+<<<<<<< HEAD
+=======
+>>>>>>> front-end
+>>>>>>> back-end
       </div>
     </div>
   </div>
@@ -30,6 +48,26 @@
 <script>
 export default {
   name: 'WeaponsList',
+<<<<<<< HEAD
+  props: {
+    cart: {
+      type: Array,
+      required: true,
+      default: () => [] // Встановлення дефолтного значення
+    }
+  },
+=======
+<<<<<<< HEAD
+>>>>>>> back-end
+  data() {
+    return {
+      weapons: [],
+      errorMessage: null // Для зберігання повідомлення про помилку
+    };
+  },
+<<<<<<< HEAD
+=======
+=======
   props: {
     cart: {
       type: Array,
@@ -43,6 +81,7 @@ export default {
       errorMessage: null // Для зберігання повідомлення про помилку
     };
   },
+>>>>>>> back-end
   mounted() {
     fetch("http://localhost/weaponshop/php/get_weapons.php")
       .then(response => {
@@ -73,6 +112,10 @@ export default {
       return this.cart.some(item => item.id === weapon.id);
     }
   }
+<<<<<<< HEAD
+=======
+>>>>>>> front-end
+>>>>>>> back-end
 };
 </script>
 
@@ -111,6 +154,11 @@ export default {
 .weapon-details p {
   margin: 5px 0;
 }
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+=======
+>>>>>>> back-end
 
 .add-to-cart-btn {
   padding: 8px 16px;
@@ -143,4 +191,8 @@ export default {
   font-style: italic;
   margin-top: 20px;
 }
+<<<<<<< HEAD
+=======
+>>>>>>> front-end
+>>>>>>> back-end
 </style>
