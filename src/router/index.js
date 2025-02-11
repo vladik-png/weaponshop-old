@@ -3,6 +3,10 @@ import HomePage from '../components/HomePage.vue';
 import WeaponsList from '../components/WeaponsList.vue';
 import AboutUs from '../components/AboutUs.vue';
 import ContactPage from '../components/ContactPage.vue';
+<<<<<<< HEAD
+=======
+import CartPay from '../components/CartPay.vue';
+>>>>>>> front-end
 
 const routes = [
   {
@@ -25,6 +29,14 @@ const routes = [
     name: 'Contact',
     component: ContactPage,
   },
+<<<<<<< HEAD
+=======
+  {
+    path: '/cart',
+    name: 'Cart',
+    component: CartPay,
+  },
+>>>>>>> front-end
 ];
 
 const router = createRouter({
@@ -32,4 +44,8 @@ const router = createRouter({
   routes,
 });
 
+<<<<<<< HEAD
 export default router;
+=======
+export default router;
+>>>>>>> front-end
