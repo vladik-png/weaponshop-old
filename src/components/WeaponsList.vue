@@ -2,13 +2,27 @@
   <div class="weapons-list">
     <h1>Список зброї</h1>
     
+    <!-- Фільтр за категоріями -->
+    <div class="filters">
+      <select v-model="selectedCategory" @change="filterWeapons">
+        <option value="">Виберіть категорію</option>
+        <option v-for="category in categories" :key="category" :value="category">{{ category }}</option>
+      </select>
+
+      <select v-model="sortOrder" @change="sortWeapons">
+        <option value="name">Сортувати за назвою</option>
+        <option value="price">Сортувати за ціною</option>
+        <option value="quantity">Сортувати за кількістю</option>
+      </select>
+    </div>
+
     <!-- Покажемо повідомлення, якщо не вдалося завантажити зброю -->
     <div v-if="errorMessage" class="error-message">{{ errorMessage }}</div>
     
     <!-- Покажемо повідомлення, якщо список зброї порожній -->
     <div v-if="weapons.length === 0 && !errorMessage" class="empty-message">Немає доступних товарів.</div>
     
-    <div class="weapon-item" v-for="weapon in weapons" :key="weapon.id">
+    <div class="weapon-item" v-for="weapon in filteredWeapons" :key="weapon.id">
       <img :src="weapon.image" :alt="weapon.name" class="weapon-image" />
       <div class="weapon-details">
         <h2>{{ weapon.name }}</h2>
@@ -39,7 +53,11 @@ export default {
   },
   data() {
     return {
-      weapons: [],
+      weapons: [],  // Список зброї
+      filteredWeapons: [], // Фільтрований список зброї
+      categories: ['Категорія 1', 'Категорія 2', 'Категорія 3'], // Категорії зброї
+      selectedCategory: '',
+      sortOrder: 'name', // Сортування за назвою за замовчуванням
       errorMessage: null // Для зберігання повідомлення про помилку
     };
   },
@@ -53,6 +71,7 @@ export default {
       })
       .then(data => {
         this.weapons = data;
+        this.filteredWeapons = data; // Початково відображаємо всі товари
       })
       .catch(error => {
         this.errorMessage = "Не вдалося завантажити список зброї. Спробуйте пізніше."; // Виведемо повідомлення про помилку
@@ -69,12 +88,26 @@ export default {
       }
       weapon.quantity--; // Зменшуємо кількість на складі
     },
-    isInCart(weapon) {
-      return this.cart.some(item => item.id === weapon.id);
+    filterWeapons() {
+      if (this.selectedCategory) {
+        this.filteredWeapons = this.weapons.filter(weapon => weapon.category === this.selectedCategory);
+      } else {
+        this.filteredWeapons = this.weapons; // Якщо не вибрана категорія, показуємо всі товари
+      }
+    },
+    sortWeapons() {
+      if (this.sortOrder === 'name') {
+        this.filteredWeapons.sort((a, b) => a.name.localeCompare(b.name));
+      } else if (this.sortOrder === 'price') {
+        this.filteredWeapons.sort((a, b) => a.price - b.price);
+      } else if (this.sortOrder === 'quantity') {
+        this.filteredWeapons.sort((a, b) => a.quantity - b.quantity);
+      }
     }
   }
 };
 </script>
+
 
 <style scoped>
 .weapons-list {

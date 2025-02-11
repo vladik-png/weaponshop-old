@@ -5,7 +5,6 @@
     <CartPay :cart="cart" @clear-cart="clearCart" />
     <FooterDown />
     <div v-if="cart.length === 0" class="empty-cart-message">
-      Кошик порожній.
     </div>
   </div>
 </template>
