@@ -2,26 +2,51 @@
   <div class="weapons-list">
     <h1>Список зброї</h1>
     
-    <!-- Фільтр за категоріями -->
+    <!-- Фільтрація та сортування -->
     <div class="filters">
-      <select v-model="selectedCategory" @change="filterWeapons">
-        <option value="">Виберіть категорію</option>
-        <option v-for="category in categories" :key="category" :value="category">{{ category }}</option>
-      </select>
-
-      <select v-model="sortOrder" @change="sortWeapons">
-        <option value="name">Сортувати за назвою</option>
-        <option value="price">Сортувати за ціною</option>
-        <option value="quantity">Сортувати за кількістю</option>
-      </select>
+      <div class="sort-icon" @click="toggleFilterMenu">
+        <img src="@/assets/icons8-sort-100.png" alt="Сортування" class="sort-icon-img" />
+      </div>
     </div>
 
-    <!-- Покажемо повідомлення, якщо не вдалося завантажити зброю -->
-    <div v-if="errorMessage" class="error-message">{{ errorMessage }}</div>
-    
-    <!-- Покажемо повідомлення, якщо список зброї порожній -->
-    <div v-if="weapons.length === 0 && !errorMessage" class="empty-message">Немає доступних товарів.</div>
-    
+    <!-- Модальне меню для фільтрування та сортування -->
+    <div v-if="isFilterMenuVisible" class="filter-menu-overlay" @click="closeFilterMenu">
+      <div class="filter-menu" @click.stop>
+        <div class="filter-group">
+          <label for="category">Категорія:</label>
+          <select id="category" v-model="selectedCategory">
+            <option value="">Всі категорії</option>
+            <option value="category1">Категорія 1</option>
+            <option value="category2">Категорія 2</option>
+            <option value="category3">Категорія 3</option>
+          </select>
+        </div>
+
+        <div class="filter-group">
+          <label for="sortBy">Сортувати за:</label>
+          <select id="sortBy" v-model="selectedSortBy">
+            <option value="name">Назвою</option>
+            <option value="price">Ціною</option>
+            <option value="quantity">Кількістю</option>
+          </select>
+        </div>
+
+        <div class="filter-group">
+          <label for="order">Напрямок сортування:</label>
+          <select id="order" v-model="selectedOrder">
+            <option value="ASC">За зростанням</option>
+            <option value="DESC">За спаданням</option>
+          </select>
+        </div>
+
+        <div class="filter-actions">
+          <button @click="applyFilters">Застосувати</button>
+          <button @click="closeFilterMenu">Закрити</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Список зброї -->
     <div class="weapon-item" v-for="weapon in filteredWeapons" :key="weapon.id">
       <img :src="weapon.image" :alt="weapon.name" class="weapon-image" />
       <div class="weapon-details">
@@ -53,12 +78,13 @@ export default {
   },
   data() {
     return {
-      weapons: [],  // Список зброї
-      filteredWeapons: [], // Фільтрований список зброї
-      categories: ['Категорія 1', 'Категорія 2', 'Категорія 3'], // Категорії зброї
-      selectedCategory: '',
-      sortOrder: 'name', // Сортування за назвою за замовчуванням
-      errorMessage: null // Для зберігання повідомлення про помилку
+      weapons: [],  // Всі доступні товари
+      filteredWeapons: [],  // Відфільтровані товари
+      errorMessage: null,  // Для повідомлення про помилки
+      isFilterMenuVisible: false,  // Статус показу меню фільтрів
+      selectedCategory: '',  // Обрана категорія
+      selectedSortBy: 'name',  // Обраний параметр для сортування
+      selectedOrder: 'ASC',  // Напрямок сортування (ASC/DESC)
     };
   },
   mounted() {
@@ -88,25 +114,49 @@ export default {
       }
       weapon.quantity--; // Зменшуємо кількість на складі
     },
+    toggleFilterMenu() {
+      this.isFilterMenuVisible = !this.isFilterMenuVisible;
+    },
+    closeFilterMenu() {
+      this.isFilterMenuVisible = false;
+    },
+    applyFilters() {
+      this.filterWeapons();  // Застосовуємо фільтри
+      this.closeFilterMenu();  // Закриваємо меню
+    },
     filterWeapons() {
+      let filtered = this.weapons;
+
+      // Фільтрація по категорії
       if (this.selectedCategory) {
-        this.filteredWeapons = this.weapons.filter(weapon => weapon.category === this.selectedCategory);
-      } else {
-        this.filteredWeapons = this.weapons; // Якщо не вибрана категорія, показуємо всі товари
+        filtered = filtered.filter(weapon => weapon.category === this.selectedCategory);
       }
+
+      this.filteredWeapons = filtered;  // Оновлюємо відфільтровані товари
+      this.sortWeapons();  // Відразу застосовуємо сортування
     },
     sortWeapons() {
-      if (this.sortOrder === 'name') {
-        this.filteredWeapons.sort((a, b) => a.name.localeCompare(b.name));
-      } else if (this.sortOrder === 'price') {
-        this.filteredWeapons.sort((a, b) => a.price - b.price);
-      } else if (this.sortOrder === 'quantity') {
-        this.filteredWeapons.sort((a, b) => a.quantity - b.quantity);
-      }
+      this.filteredWeapons.sort((a, b) => {
+        let comparison = 0;
+        if (this.selectedSortBy === 'name') {
+          comparison = a.name.localeCompare(b.name);
+        } else if (this.selectedSortBy === 'price') {
+          comparison = a.price - b.price;
+        } else if (this.selectedSortBy === 'quantity') {
+          comparison = a.quantity - b.quantity;
+        }
+
+        if (this.selectedOrder === 'DESC') {
+          comparison = -comparison;
+        }
+
+        return comparison;
+      });
     }
   }
 };
 </script>
+
 
 
 <style scoped>
@@ -176,4 +226,84 @@ export default {
   font-style: italic;
   margin-top: 20px;
 }
+
+.filters {
+  display: flex;
+  justify-content: flex-end;
+  width: 100%;
+  margin-bottom: 20px;
+}
+
+.sort-icon {
+  margin-left: -10px;
+  left: -30px;
+  position: relative;
+  cursor: pointer;
+}
+
+.sort-icon-img {
+  width: 30px;
+  height: 30px;
+}
+
+.filter-menu-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 999;
+}
+
+.filter-menu {
+  background-color: white;
+  padding: 20px;
+  border-radius: 8px;
+  width: 80%;
+  max-width: 400px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  margin: 15px 0;
+}
+
+.filter-group label {
+  font-weight: bold;
+  margin-bottom: 5px;
+}
+
+.filter-group select {
+  padding: 8px;
+  font-size: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+.filter-actions {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 20px;
+}
+
+.filter-actions button {
+  padding: 10px 20px;
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.filter-actions button:hover {
+  background-color: #45a049;
+}
+
 </style>

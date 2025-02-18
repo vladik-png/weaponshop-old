@@ -4,6 +4,7 @@ import WeaponsList from '../components/WeaponsList.vue';
 import AboutUs from '../components/AboutUs.vue';
 import ContactPage from '../components/ContactPage.vue';
 import CartPay from '../components/CartPay.vue';
+import RegisTration from '@/components/RegisTration.vue';
 
 const routes = [
   {
@@ -30,6 +31,11 @@ const routes = [
     path: '/cart',
     name: 'Cart',
     component: CartPay,
+  },
+  {
+    path: '/registration',
+    name: 'Registration',
+    component: RegisTration,
   },
 ];
 
