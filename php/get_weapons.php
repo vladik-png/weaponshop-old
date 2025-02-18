@@ -1,4 +1,6 @@
 <?php
+session_start();
+
 header("Access-Control-Allow-Origin: *"); // Дозволяє запити з будь-якого джерела
 header("Access-Control-Allow-Methods: GET, POST, OPTIONS"); // Дозволяє GET, POST, OPTIONS
 header("Access-Control-Allow-Headers: Content-Type, Authorization"); // Дозволяє певні заголовки

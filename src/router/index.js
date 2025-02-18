@@ -6,7 +6,8 @@ import ContactPage from '../components/ContactPage.vue';
 import CartPay from '../components/CartPay.vue';
 import RegisTration from '@/components/RegisTration.vue';
 import LoGin from '@/components/LoGin.vue';
-import LoginPage from '@/components/LoginPage.vue'
+import LoginPage from '@/components/LoginPage.vue';
+import ProFile from "@/components/ProFile.vue";
 const routes = [
   {
     path: '/',
@@ -46,6 +47,10 @@ const routes = [
   { path: '/signin',
     name: 'SignIn',
     component: LoginPage,
+  },
+  { path: '/profile',
+    name: 'Profile',
+    component: ProFile,
   },
 ];
 

@@ -1,17 +1,18 @@
 <?php
 session_start();
 header("Access-Control-Allow-Origin: *"); // Дозволяє запити з будь-якого джерела
-header("Access-Control-Allow-Methods: GET, POST, OPTIONS"); // Дозволяє GET, POST, OPTIONS
-header("Access-Control-Allow-Headers: Content-Type, Authorization"); // Дозволяє певні заголовки
-header('Content-Type: application/json');
+header("Access-Control-Allow-Methods: GET, POST, OPTIONS");
+header("Access-Control-Allow-Headers: Content-Type, Authorization");
+header('Content-Type: application/json'); // Встановлення JSON-відповіді
+
 // Налаштування підключення до БД
 $host   = 'localhost';           // Сервер MySQL
 $dbName = 'weapon';        // Назва вашої бази даних
-$user   = 'root';                // Ім'я користувача MySQL
-$pass   = '';                    // Пароль до MySQL (якщо пароль відсутній, залиште порожнім)
+$username   = 'root';                // Ім'я користувача MySQL
+$password   = '';                    // Пароль до MySQL (якщо пароль відсутній, залиште порожнім)
 
 try {
-    $pdo = new PDO("mysql:host=$host;dbname=$dbName;charset=utf8", $user, $pass);
+    $pdo = new PDO("mysql:host=$host;dbname=$dbName;charset=utf8", $username, $password);
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 } catch (PDOException $e) {
     die(json_encode([
