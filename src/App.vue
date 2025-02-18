@@ -1,11 +1,10 @@
-<template>
+<template> 
   <div id="app">
-    <MainMenu />
-    <router-view :cart="cart" @add-to-cart="addToCart" /> <!-- Передача cart через router-view -->
+    <MainMenu :user="user" @logout="logout" />
+    <router-view :cart="cart" @add-to-cart="addToCart" @login-success="checkAuth" />
     <CartPay :cart="cart" @clear-cart="clearCart" />
     <FooterDown />
-    <div v-if="cart.length === 0" class="empty-cart-message">
-    </div>
+    <div v-if="cart.length === 0" class="empty-cart-message"></div>
   </div>
 </template>
 
@@ -24,6 +23,7 @@ export default {
   data() {
     return {
       cart: [],
+      user: null, // Тримаємо інформацію про користувача
     };
   },
   methods: {
@@ -32,7 +32,38 @@ export default {
     },
     clearCart() {
       this.cart = [];
+    },
+    async checkAuth() {
+      try {
+        const response = await fetch('http://localhost/weaponshop/php/session.php', {
+          credentials: 'include',
+        });
+        const data = await response.json();
+
+        if (data.user) {
+          this.user = data.user; // Зберігаємо користувача
+        } else {
+          this.user = null;
+        }
+      } catch (error) {
+        console.error('Помилка перевірки авторизації:', error);
+        this.user = null;
+      }
+    },
+    async logout() {
+      try {
+        await fetch('http://localhost/weaponshop/php/logout.php', {
+          method: 'POST',
+          credentials: 'include',
+        });
+        this.user = null; // Скидаємо користувача після виходу
+      } catch (error) {
+        console.error('Помилка при виході:', error);
+      }
     }
+  },
+  mounted() {
+    this.checkAuth(); // Перевіряємо авторизацію при завантаженні
   }
 };
 </script>

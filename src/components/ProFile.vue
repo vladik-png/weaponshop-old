@@ -21,7 +21,7 @@ const fetchUserData = async () => {
       email.value = data.user.email;
     } else {
       message.value = data.message || "Помилка отримання даних.";
-      setTimeout(() => router.push('/login'), 2000); // ✅ Редірект через 2 секунди
+      setTimeout(() => router.push('/login'), 2000);
     }
   } catch (error) {
     console.error('Помилка отримання даних:', error);
@@ -71,7 +71,7 @@ h2 {
   margin-bottom: 20px;
 }
 button {
-  background-color: #007bff;
+  background-color: #45a049;
   color: white;
   border: none;
   padding: 10px;
@@ -80,6 +80,6 @@ button {
   width: 100%;
 }
 button:hover {
-  background-color: #0056b3;
+  background-color: #45a049;
 }
 </style>

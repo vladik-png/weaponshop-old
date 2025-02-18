@@ -17,8 +17,6 @@
   </template>
   
   <script>
-  import { useRouter } from 'vue-router';
-  
   export default {
     data() {
       return {
@@ -27,18 +25,13 @@
         message: ''
       };
     },
-    setup() {
-      const router = useRouter();
-      return { router };
-    },
     methods: {
       async loginUser() {
-        console.log("Метод loginUser викликаний. Email:", this.email, "Пароль:", this.password);
         try {
           const response = await fetch('http://localhost/weaponshop/php/login.php', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            credentials: 'include', // ✅ Додаємо, щоб кукі передавались
+            credentials: 'include',
             body: JSON.stringify({
               email: this.email,
               password: this.password
@@ -46,18 +39,14 @@
           });
   
           const data = await response.json();
-          console.log("Відповідь сервера:", data);
           this.message = data.message;
   
-          // ✅ Перевірка перед редіректом
           if (data.user) {
-            setTimeout(() => {
-              this.router.push('/profile');
-            }, 200);
+            this.$emit('login-success', data.user); // Передаємо дані користувача у батьківський компонент
+            this.$router.push('/');
           }
         } catch (error) {
           console.error("Помилка логіну:", error);
-          this.message = "Сталася помилка. Будь ласка, спробуйте пізніше.";
         }
       }
     }
