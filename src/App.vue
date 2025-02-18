@@ -13,6 +13,7 @@ import MainMenu from './components/MainMenu.vue';
 import FooterDown from './components/FooterDown.vue';
 import CartPay from './components/CartPay.vue';
 
+
 export default {
   name: 'App',
   components: {

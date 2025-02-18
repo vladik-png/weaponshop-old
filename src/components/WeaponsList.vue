@@ -1,26 +1,24 @@
 <template>
   <div class="weapons-list">
     <h1>Список зброї</h1>
-    
-    <!-- Фільтрація та сортування -->
+
     <div class="filters">
       <div class="sort-icon" @click="toggleFilterMenu">
         <img src="@/assets/icons8-sort-100.png" alt="Сортування" class="sort-icon-img" />
       </div>
     </div>
 
-    <!-- Модальне меню для фільтрування та сортування -->
     <div v-if="isFilterMenuVisible" class="filter-menu-overlay" @click="closeFilterMenu">
       <div class="filter-menu" @click.stop>
         <div class="filter-group">
-          <label for="category">Категорія:</label>
-          <select id="category" v-model="selectedCategory">
-            <option value="">Всі категорії</option>
-            <option value="category1">Категорія 1</option>
-            <option value="category2">Категорія 2</option>
-            <option value="category3">Категорія 3</option>
-          </select>
-        </div>
+  <label for="category">Категорія:</label>
+  <select id="category" v-model="selectedCategory">
+    <option value="">Всі категорії</option>
+    <option v-for="cat in categories" :key="cat.id" :value="cat.id">
+      {{ cat.name }}
+    </option>
+  </select>
+</div>
 
         <div class="filter-group">
           <label for="sortBy">Сортувати за:</label>
@@ -46,7 +44,6 @@
       </div>
     </div>
 
-    <!-- Список зброї -->
     <div class="weapon-item" v-for="weapon in filteredWeapons" :key="weapon.id">
       <img :src="weapon.image" :alt="weapon.name" class="weapon-image" />
       <div class="weapon-details">
@@ -54,6 +51,7 @@
         <p>{{ weapon.description }}</p>
         <p><strong>Ціна: </strong>{{ weapon.price }} грн</p>
         <p><strong>Кількість: </strong>{{ weapon.quantity }}</p>
+        <p><strong>Категорія: </strong>{{ weapon.category_name }}</p>
         <button 
           @click="addToCart(weapon)" 
           :disabled="weapon.quantity <= 0"
@@ -64,7 +62,7 @@
       </div>
     </div>
   </div>
-</template>
+</template> 
 
 <script>
 export default {
@@ -73,46 +71,62 @@ export default {
     cart: {
       type: Array,
       required: true,
-      default: () => [] // Встановлення дефолтного значення
+      default: () => []
     }
   },
   data() {
     return {
-      weapons: [],  // Всі доступні товари
-      filteredWeapons: [],  // Відфільтровані товари
-      errorMessage: null,  // Для повідомлення про помилки
-      isFilterMenuVisible: false,  // Статус показу меню фільтрів
-      selectedCategory: '',  // Обрана категорія
-      selectedSortBy: 'name',  // Обраний параметр для сортування
-      selectedOrder: 'ASC',  // Напрямок сортування (ASC/DESC)
+      weapons: [],  
+      filteredWeapons: [],  
+      categories: [],  // Додаємо масив категорій
+      errorMessage: null,  
+      isFilterMenuVisible: false,  
+      selectedCategory: '',  
+      selectedSortBy: 'name',  
+      selectedOrder: 'ASC',  
     };
   },
   mounted() {
-    fetch("http://localhost/weaponshop/php/get_weapons.php")
-      .then(response => {
-        if (!response.ok) {
-          throw new Error("Помилка сервера: " + response.status);
-        }
-        return response.json();
-      })
-      .then(data => {
-        this.weapons = data;
-        this.filteredWeapons = data; // Початково відображаємо всі товари
-      })
-      .catch(error => {
-        this.errorMessage = "Не вдалося завантажити список зброї. Спробуйте пізніше."; // Виведемо повідомлення про помилку
-        console.error("Помилка завантаження:", error);
-      });
+    this.loadWeapons();
+    this.loadCategories();
   },
   methods: {
+    loadWeapons() {
+      fetch("http://localhost/weaponshop/php/get_weapons.php")
+        .then(response => {
+          if (!response.ok) throw new Error("Помилка сервера: " + response.status);
+          return response.json();
+        })
+        .then(data => {
+          this.weapons = data;
+          this.filteredWeapons = data; 
+        })
+        .catch(error => {
+          this.errorMessage = "Не вдалося завантажити список зброї.";
+          console.error("Помилка завантаження:", error);
+        });
+    },
+    loadCategories() {
+      fetch("http://localhost/weaponshop/php/get_categories.php")
+        .then(response => {
+          if (!response.ok) throw new Error("Помилка сервера: " + response.status);
+          return response.json();
+        })
+        .then(data => {
+          this.categories = data;  
+        })
+        .catch(error => {
+          console.error("Помилка завантаження категорій:", error);
+        });
+    },
     addToCart(weapon) {
       const existingItem = this.cart.find(item => item.id === weapon.id);
       if (existingItem) {
-        existingItem.quantity++; // Збільшуємо кількість, якщо товар вже в кошику
+        existingItem.quantity++; 
       } else {
-        this.$emit('add-to-cart', { ...weapon, quantity: 1 }); // Додаємо товар до кошика, якщо його ще немає
+        this.$emit('add-to-cart', { ...weapon, quantity: 1 });
       }
-      weapon.quantity--; // Зменшуємо кількість на складі
+      weapon.quantity--;  
     },
     toggleFilterMenu() {
       this.isFilterMenuVisible = !this.isFilterMenuVisible;
@@ -121,19 +135,19 @@ export default {
       this.isFilterMenuVisible = false;
     },
     applyFilters() {
-      this.filterWeapons();  // Застосовуємо фільтри
-      this.closeFilterMenu();  // Закриваємо меню
+      this.filterWeapons();
+      this.closeFilterMenu();
     },
     filterWeapons() {
       let filtered = this.weapons;
 
-      // Фільтрація по категорії
+      // ✅ Фільтрація за категорією (переконайся, що в БД є category_id)
       if (this.selectedCategory) {
-        filtered = filtered.filter(weapon => weapon.category === this.selectedCategory);
+        filtered = filtered.filter(weapon => weapon.category_id == this.selectedCategory);
       }
 
-      this.filteredWeapons = filtered;  // Оновлюємо відфільтровані товари
-      this.sortWeapons();  // Відразу застосовуємо сортування
+      this.filteredWeapons = filtered;  
+      this.sortWeapons();  
     },
     sortWeapons() {
       this.filteredWeapons.sort((a, b) => {
@@ -156,6 +170,7 @@ export default {
   }
 };
 </script>
+
 
 
 

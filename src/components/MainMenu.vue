@@ -10,6 +10,48 @@
       </li>
     </ul>
 
+    <!-- Пошук -->
+    <div class="search-container">
+      <input
+        type="text"
+        v-model="searchTerm"
+        @input="onSearchInput"
+        placeholder="Пошук..."
+        class="search-input"
+      />
+      <!-- Випадаючий список пропозицій -->
+      <ul v-if="suggestions.length" class="suggestion-list">
+        <li
+          v-for="(item, index) in suggestions"
+          :key="index"
+          @click="onSelect(item)"
+          class="suggestion-item"
+        >
+          <!-- Відображення фото (якщо воно існує) -->
+          <img
+            v-if="item.image"
+            :src="item.image"
+            alt="Фото"
+            class="suggestion-img"
+          />
+          <!-- Якщо фото немає, можна вивести placeholder -->
+          <img
+            v-else
+            src="/path/to/placeholder.jpg"
+            alt="Фото"
+            class="suggestion-img"
+          />
+          <!-- Відображення назви -->
+          <span v-if="item.type === 'weapon'">
+            🔫 {{ item.name }}
+          </span>
+          <span v-else-if="item.type === 'category'">
+            📂 {{ item.name }}
+          </span>
+        </li>
+      </ul>
+    </div>
+
     <!-- Якщо користувач не авторизований -->
     <router-link v-if="!user" to="/signin" class="login-btn">Увійти</router-link>
 
@@ -38,7 +80,10 @@ export default {
         { id: 2, name: "Зброя", link: "/weapons" },
         { id: 3, name: "Про нас", link: "/about" },
         { id: 4, name: "Контакти", link: "/contact" }
-      ]
+      ],
+      // Дані для пошуку
+      searchTerm: '',
+      suggestions: []
     };
   },
   methods: {
@@ -52,6 +97,33 @@ export default {
       });
       this.$emit("logout");
       this.menuOpen = false;
+    },
+    onSearchInput() {
+      // Якщо поле пошуку порожнє, скидаємо пропозиції
+      if (!this.searchTerm) {
+        this.suggestions = [];
+        return;
+      }
+      // Робимо запит до global_search.php
+      fetch(`http://localhost/weaponshop/php/global_search.php?term=${encodeURIComponent(this.searchTerm)}`)
+        .then(response => response.json())
+        .then(data => {
+          this.suggestions = data;
+        })
+        .catch(err => console.error('Помилка пошуку:', err));
+    },
+    onSelect(item) {
+      // Переходимо на відповідну сторінку в залежності від типу
+      if (item.type === 'weapon') {
+        // Наприклад, маршрут для зброї: /weapon/:id
+        this.$router.push(`/weapon/${item.id}`);
+      } else if (item.type === 'category') {
+        // Для категорій: /category/:id
+        this.$router.push(`/category/${item.id}`);
+      }
+      // Очищаємо поле пошуку та список підказок
+      this.searchTerm = '';
+      this.suggestions = [];
     }
   }
 };
@@ -71,6 +143,46 @@ export default {
   display: flex;
   margin: 0;
   padding: 0;
+}
+
+.search-container {
+  position: relative;
+  margin-left: 20px; /* щоб трохи відступити від меню */
+}
+
+.search-input {
+  padding: 5px 8px;
+  /* інші стилі за бажанням */
+}
+
+.suggestion-list {
+  position: absolute;
+  top: 30px; /* відступ від поля вводу */
+  left: 0;
+  width: 200px;
+  background: #fff;
+  border: 1px solid #ccc;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  z-index: 10; /* щоб перекривало інші елементи */
+}
+
+.suggestion-item {
+  padding: 5px 10px;
+  cursor: pointer;
+}
+
+.suggestion-item:hover {
+  background-color: #eee;
+}
+
+.suggestion-img {
+  width: 40px;
+  height: 40px;
+  object-fit: cover;
+  margin-right: 10px;
+  border-radius: 4px;
 }
 
 .menu-item {
