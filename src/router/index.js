@@ -8,6 +8,7 @@ import RegisTration from '@/components/RegisTration.vue';
 import LoGin from '@/components/LoGin.vue';
 import LoginPage from '@/components/LoginPage.vue';
 import ProFile from "@/components/ProFile.vue";
+import AdminPanel from "@/components/AdminPanel.vue";
 const routes = [
   {
     path: '/',
@@ -51,6 +52,10 @@ const routes = [
   { path: '/profile',
     name: 'Profile',
     component: ProFile,
+  },
+  { path: '/admin',
+    name: 'Admin',
+    component: AdminPanel,
   },
 ];
 

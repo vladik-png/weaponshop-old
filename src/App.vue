@@ -2,8 +2,8 @@
   <div id="app">
     <MainMenu :user="user" @logout="logout" />
     <router-view :cart="cart" @add-to-cart="addToCart" @login-success="checkAuth" />
-    <CartPay :cart="cart" @clear-cart="clearCart" />
-    <FooterDown />
+    <CartPay v-if="!isAdminPage" :cart="cart" @clear-cart="clearCart" />
+    <FooterDown v-if="!isAdminPage" />
     <div v-if="cart.length === 0" class="empty-cart-message"></div>
   </div>
 </template>
@@ -23,8 +23,13 @@ export default {
   data() {
     return {
       cart: [],
-      user: null, // Тримаємо інформацію про користувача
+      user: null
     };
+  },
+  computed: {
+    isAdminPage() {
+      return this.$route.path.startsWith('/admin');
+    }
   },
   methods: {
     addToCart(item) {
@@ -40,11 +45,7 @@ export default {
         });
         const data = await response.json();
 
-        if (data.user) {
-          this.user = data.user; // Зберігаємо користувача
-        } else {
-          this.user = null;
-        }
+        this.user = data.user ? data.user : null;
       } catch (error) {
         console.error('Помилка перевірки авторизації:', error);
         this.user = null;
@@ -56,22 +57,14 @@ export default {
           method: 'POST',
           credentials: 'include',
         });
-        this.user = null; // Скидаємо користувача після виходу
+        this.user = null;
       } catch (error) {
         console.error('Помилка при виході:', error);
       }
     }
   },
   mounted() {
-    this.checkAuth(); // Перевіряємо авторизацію при завантаженні
+    this.checkAuth();
   }
 };
 </script>
-
-<style>
-.empty-cart-message {
-  text-align: center;
-  font-size: 1.5em;
-  color: #ff0000;
-}
-</style>

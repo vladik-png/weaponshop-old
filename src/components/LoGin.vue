@@ -43,7 +43,7 @@
   
           if (data.user) {
             this.$emit('login-success', data.user); // Передаємо дані користувача у батьківський компонент
-            this.$router.push('/');
+            this.$router.push('/profile');
           }
         } catch (error) {
           console.error("Помилка логіну:", error);
