@@ -5,7 +5,8 @@ import AboutUs from '../components/AboutUs.vue';
 import ContactPage from '../components/ContactPage.vue';
 import CartPay from '../components/CartPay.vue';
 import RegisTration from '@/components/RegisTration.vue';
-
+import LoGin from '@/components/LoGin.vue';
+import LoginPage from '@/components/LoginPage.vue'
 const routes = [
   {
     path: '/',
@@ -36,6 +37,15 @@ const routes = [
     path: '/registration',
     name: 'Registration',
     component: RegisTration,
+  },
+  {
+    path: '/login',
+    name: 'Login',
+    component: LoGin,
+  },
+  { path: '/signin',
+    name: 'SignIn',
+    component: LoginPage,
   },
 ];
 

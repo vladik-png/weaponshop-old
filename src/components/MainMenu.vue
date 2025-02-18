@@ -10,6 +10,7 @@
       </li>
     </ul>
   </nav>
+  <router-link to="/signin">Увійти</router-link>
 </template>
 
 <script>
