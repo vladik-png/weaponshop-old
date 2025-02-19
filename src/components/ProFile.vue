@@ -14,7 +14,7 @@
       <span v-if="role === 'admin'" class="admin-badge">Адміністратор</span>
     </p>
     <p>Email: {{ email }}</p>
-    <p>Кількість замовлень: {{ ordersCount }}</p>
+    
 
     <!-- Відображення адреси -->
     <div class="address-section">
