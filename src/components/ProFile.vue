@@ -1,3 +1,59 @@
+<template>
+  <div class="profile-card">
+    <!-- Кнопка "Назад" -->
+    <button class="back-arrow" @click="goBack">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
+      </svg>
+    </button>
+
+    <h2>Профіль користувача</h2>
+
+    <p>
+      Ім'я користувача: {{ username }}
+      <span v-if="role === 'admin'" class="admin-badge">Адміністратор</span>
+    </p>
+    <p>Email: {{ email }}</p>
+    <p>Кількість замовлень: {{ ordersCount }}</p>
+
+    <!-- Відображення адреси -->
+    <div class="address-section">
+      <div v-if="address.country && address.city && address.branch">
+        <p><strong>Країна:</strong> {{ address.country }}</p>
+        <p><strong>Місто/село:</strong> {{ address.city }}</p>
+        <p><strong>Відділення Нової пошти:</strong> {{ address.branch }}</p>
+        <p><strong>Номер телефону:</strong> {{ address.phone_number || 'Не вказано' }}</p>
+      </div>
+      <div v-else>
+        <p>Адреса не вказана</p>
+      </div>
+
+      <!-- Анімована кнопка -->
+      <button class="edit-btn" :class="{ active: isEditing }" @click="toggleEdit">
+        {{ isEditing ? 'Закрити' : 'Редагувати' }}
+      </button>
+    </div>
+
+    <!-- Редагування адреси з покращеною анімацією -->
+    <Transition name="smooth-fade">
+      <div v-if="isEditing" class="edit-address">
+        <h4>Введіть нову адресу</h4>
+        <input type="text" v-model="newCountry" placeholder="Країна" />
+        <input type="text" v-model="newCity" placeholder="Місто/село" />
+        <input type="text" v-model="newBranch" placeholder="Відділення Нової пошти" />
+        <input type="text" v-model="newPhoneNumber" placeholder="Номер телефону" />
+        <button class="save-btn" @click="saveAddress">Зберегти</button>
+      </div>
+    </Transition>
+
+    <!-- Повідомлення про помилки чи успіх -->
+    <p v-if="message" class="error">{{ message }}</p>
+
+    <!-- Кнопка виходу -->
+    <button class="logout-btn" @click="logout">Вийти</button>
+  </div>
+</template>
+
 <script setup>
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
@@ -5,10 +61,14 @@ import { useRouter } from 'vue-router';
 const username = ref('');
 const email = ref('');
 const ordersCount = ref(0);
-const address = ref('');
-const newAddress = ref('');
+const address = ref({ country: '', city: '', branch: '', phone_number: '' });
+const newCountry = ref('');
+const newCity = ref('');
+const newBranch = ref('');
+const newPhoneNumber = ref('');
 const message = ref('');
-const role = ref(''); // зберігаємо роль користувача
+const role = ref('');
+const userId = ref('');
 const router = useRouter();
 const isEditing = ref(false);
 
@@ -23,8 +83,9 @@ const fetchUserData = async () => {
       username.value = data.user.username;
       email.value = data.user.email;
       ordersCount.value = data.user.ordersCount || 0;
-      address.value = data.user.address || 'Адреса не вказана';
-      role.value = data.user.role || ''; // зберігаємо роль (наприклад, "admin")
+      role.value = data.user.role || '';
+      userId.value = data.user.id;
+      fetchAddress();
     } else {
       message.value = data.message || "Помилка отримання даних.";
       setTimeout(() => router.push('/login'), 2000);
@@ -35,7 +96,60 @@ const fetchUserData = async () => {
   }
 };
 
-onMounted(fetchUserData);
+const fetchAddress = async () => {
+  try {
+    const response = await fetch('http://localhost/weaponshop/php/address.php', {
+      method: 'GET',
+      credentials: 'include',
+    });
+    const data = await response.json();
+    if (data.success && data.address) {
+      address.value = data.address;
+    } else {
+      address.value = { country: '', city: '', branch: '', phone_number: '' };
+    }
+  } catch (error) {
+    console.error('Помилка отримання адреси:', error);
+    address.value = { country: '', city: '', branch: '', phone_number: '' };
+  }
+};
+
+const saveAddress = async () => {
+  if (!newCountry.value || !newCity.value || !newBranch.value || !newPhoneNumber.value) {
+    message.value = "Будь ласка, заповніть всі поля.";
+    return;
+  }
+  try {
+    const response = await fetch('http://localhost/weaponshop/php/address.php', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      credentials: 'include',
+      body: JSON.stringify({
+        country: newCountry.value,
+        city: newCity.value,
+        branch: newBranch.value,
+        phone_number: newPhoneNumber.value,
+      }),
+    });
+    const data = await response.json();
+    if (data.success) {
+      address.value = data.address;
+      isEditing.value = false;
+      newCountry.value = '';
+      newCity.value = '';
+      newBranch.value = '';
+      newPhoneNumber.value = '';
+      message.value = "Адресу та номер телефону успішно оновлено.";
+    } else {
+      message.value = data.message || "Не вдалося оновити адресу.";
+    }
+  } catch (error) {
+    console.error('Помилка збереження адреси:', error);
+    message.value = "Сталася помилка. Спробуйте пізніше.";
+  }
+};
 
 const logout = async () => {
   try {
@@ -43,64 +157,24 @@ const logout = async () => {
       method: 'POST',
       credentials: 'include',
     });
-    router.push('/'); // Перенаправлення на головну сторінку
+    router.push('/');
   } catch (error) {
     console.error('Помилка при виході:', error);
   }
 };
 
-const saveAddress = async () => {
-  if (!newAddress.value) return;
-  address.value = newAddress.value;
-  isEditing.value = false;
-};
-
+// Опційна функція для кнопки "Назад"
 const goBack = () => {
   router.go(-1);
 };
+
+const toggleEdit = () => {
+  isEditing.value = !isEditing.value;
+};
+
+onMounted(fetchUserData);
 </script>
 
-<template>
-  <div class="profile-card">
-    <button class="back-arrow" @click="goBack">
-      <svg
-        width="24"
-        height="24"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        stroke-width="2"
-        stroke-linecap="round"
-        stroke-linejoin="round"
-      >
-        <polyline points="15 18 9 12 15 6"></polyline>
-      </svg>
-    </button>
-    <h2>Профіль користувача</h2>
-    <p v-if="message" class="error">{{ message }}</p>
-    <template v-if="username && email">
-      <p>
-        <strong>Ім'я користувача:</strong> {{ username }}
-        <!-- Відображення значка адміністратора, якщо роль "admin" -->
-        <span v-if="role === 'admin'" class="admin-badge">Адміністратор</span>
-      </p>
-      <p><strong>Email:</strong> {{ email }}</p>
-      <p><strong>Кількість замовлень:</strong> {{ ordersCount }}</p>
-      
-      <div class="address-section">
-        <p><strong>Адреса доставки:</strong> {{ address }}</p>
-        <button @click="isEditing = true" class="edit-btn">Редагувати</button>
-      </div>
-      
-      <div v-if="isEditing" class="edit-address">
-        <input v-model="newAddress" type="text" placeholder="Введіть нову адресу" />
-        <button @click="saveAddress" class="save-btn">Зберегти</button>
-      </div>
-      
-      <button @click="logout" class="logout-btn">Вийти</button>
-    </template>
-  </div>
-</template>
 
 <style scoped>
 .profile-card {
@@ -170,6 +244,7 @@ p {
   justify-content: space-between;
   align-items: center;
   margin-top: 15px;
+  text-align: left;
 }
 
 .edit-address {
@@ -230,9 +305,38 @@ button {
 }
 
 .error {
-  color: #e74c3c;
+  color: #4CAF50;
   font-weight: bold;
   margin-bottom: 15px;
+}
+
+.edit-btn {
+  background-color: #4CAF50;
+  color: #fff;
+  padding: 10px 15px;
+  border: none;
+  cursor: pointer;
+  border-radius: 5px;
+  font-size: 1rem;
+  transition: background-color 0.3s, transform 0.3s ease;
+}
+
+.edit-btn:hover {
+  background-color: #45a049;
+}
+
+.edit-btn.active {
+  background-color: #e74c3c;
+  transform: scale(1.05);
+}
+
+/* Покращена плавна анімація */
+.smooth-fade-enter-active, .smooth-fade-leave-active {
+  transition: opacity 0.4s ease, transform 0.4s ease;
+}
+.smooth-fade-enter-from, .smooth-fade-leave-to {
+  opacity: 0;
+  transform: translateY(-15px);
 }
 
 </style>

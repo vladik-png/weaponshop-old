@@ -9,6 +9,7 @@ import LoGin from '@/components/LoGin.vue';
 import LoginPage from '@/components/LoginPage.vue';
 import ProFile from "@/components/ProFile.vue";
 import AdminPanel from "@/components/AdminPanel.vue";
+import OrderDel from "@/components/OrderDel.vue";
 const routes = [
   {
     path: '/',
@@ -56,6 +57,10 @@ const routes = [
   { path: '/admin',
     name: 'Admin',
     component: AdminPanel,
+  },
+  { path: '/order',
+    name: 'Order',
+    component: OrderDel,
   },
 ];
 

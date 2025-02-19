@@ -8,6 +8,17 @@
           class="menu-link"
         >{{ item.name }}</router-link>
       </li>
+
+      <!-- Кнопка "Адмін панель" відображається лише для адміністратора -->
+      <li class="menu-item" v-if="isAdmin">
+        <router-link 
+          to="/admin" 
+          active-class="active-link"
+          class="menu-link"
+        >
+          Адмін панель
+        </router-link>
+      </li>
     </ul>
 
     <!-- Пошук -->
@@ -82,6 +93,12 @@ export default {
       suggestions: []
     };
   },
+  computed: {
+    // Визначаємо, чи є користувач адміністратором
+    isAdmin() {
+      return this.user && (this.user.role === 'admin' || this.user.isAdmin === true);
+    }
+  },
   mounted() {
     document.addEventListener("click", this.handleOutsideClick);
   },
@@ -142,7 +159,7 @@ export default {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background-color: #2c3e50;
+  background-color: #333;
   padding: 1rem;
 }
 
@@ -166,7 +183,7 @@ export default {
   position: absolute;
   top: 30px;
   left: 0;
-  width: 200px;
+  width: auto;
   background: #fff;
   border: 1px solid #ccc;
   list-style: none;
@@ -236,7 +253,7 @@ export default {
   border-radius: 5px;
   box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
   padding: 10px;
-  min-width: 150px;
+  min-width: 150px; 
 }
 
 .dropdown-item {

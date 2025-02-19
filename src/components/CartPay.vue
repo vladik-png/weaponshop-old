@@ -40,14 +40,16 @@ export default {
   },
   methods: {
     toggleCart() {
-      this.showCart = !this.showCart; // Відкриває або закриває кошик
+      this.showCart = !this.showCart;
     },
     clearCart() {
-      this.$emit('clear-cart'); // Викидає подію для очищення кошика
+      this.$emit('clear-cart');
     },
     checkout() {
-      // Логіка для оформлення замовлення
-      alert("Оформлено замовлення!");
+      this.$router.push({ 
+        name: 'Order', 
+        params: { cart: this.cart } 
+      });
     }
   }
 };
