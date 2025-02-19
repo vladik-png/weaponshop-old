@@ -11,14 +11,14 @@
     <div v-if="isFilterMenuVisible" class="filter-menu-overlay" @click="closeFilterMenu">
       <div class="filter-menu" @click.stop>
         <div class="filter-group">
-  <label for="category">Категорія:</label>
-  <select id="category" v-model="selectedCategory">
-    <option value="">Всі категорії</option>
-    <option v-for="cat in categories" :key="cat.id" :value="cat.id">
-      {{ cat.name }}
-    </option>
-  </select>
-</div>
+          <label for="category">Категорія:</label>
+          <select id="category" v-model="selectedCategory">
+            <option value="">Всі категорії</option>
+            <option v-for="cat in categories" :key="cat.id" :value="cat.id">
+              {{ cat.name }}
+            </option>
+          </select>
+        </div>
 
         <div class="filter-group">
           <label for="sortBy">Сортувати за:</label>
@@ -50,11 +50,11 @@
         <h2>{{ weapon.name }}</h2>
         <p>{{ weapon.description }}</p>
         <p><strong>Ціна: </strong>{{ weapon.price }} грн</p>
-        <p><strong>Кількість: </strong>{{ weapon.quantity }}</p>
+        <p><strong>Кількість: </strong>{{ getAvailableQuantity(weapon) }}</p>
         <p><strong>Категорія: </strong>{{ weapon.category_name }}</p>
         <button 
           @click="addToCart(weapon)" 
-          :disabled="weapon.quantity <= 0"
+          :disabled="getAvailableQuantity(weapon) <= 0"
           class="add-to-cart-btn"
         >
           Додати до кошика
@@ -78,7 +78,7 @@ export default {
     return {
       weapons: [],  
       filteredWeapons: [],  
-      categories: [],  // Додаємо масив категорій
+      categories: [],  
       errorMessage: null,  
       isFilterMenuVisible: false,  
       selectedCategory: '',  
@@ -120,13 +120,17 @@ export default {
         });
     },
     addToCart(weapon) {
-      const existingItem = this.cart.find(item => item.id === weapon.id);
-      if (existingItem) {
-        existingItem.quantity++; 
+      const cartItem = this.cart.find(item => item.id === weapon.id);
+      if (cartItem) {
+        cartItem.quantity++;
       } else {
         this.$emit('add-to-cart', { ...weapon, quantity: 1 });
       }
-      weapon.quantity--;  
+      this.$emit('update-weapon-quantity', { id: weapon.id, quantity: weapon.quantity - 1 });
+    },
+    getAvailableQuantity(weapon) {
+      const cartItem = this.cart.find(item => item.id === weapon.id);
+      return cartItem ? weapon.quantity - cartItem.quantity : weapon.quantity;
     },
     toggleFilterMenu() {
       this.isFilterMenuVisible = !this.isFilterMenuVisible;
@@ -140,12 +144,9 @@ export default {
     },
     filterWeapons() {
       let filtered = this.weapons;
-
-      // ✅ Фільтрація за категорією (переконайся, що в БД є category_id)
       if (this.selectedCategory) {
         filtered = filtered.filter(weapon => weapon.category_id == this.selectedCategory);
       }
-
       this.filteredWeapons = filtered;  
       this.sortWeapons();  
     },
@@ -159,19 +160,15 @@ export default {
         } else if (this.selectedSortBy === 'quantity') {
           comparison = a.quantity - b.quantity;
         }
-
         if (this.selectedOrder === 'DESC') {
           comparison = -comparison;
         }
-
         return comparison;
       });
     }
   }
 };
 </script>
-
-
 
 
 <style scoped>
