@@ -4,6 +4,13 @@
     <p class="contact-description">
       Ми завжди готові допомогти вам! Якщо у вас є питання або потреба в консультації, заповніть форму нижче або зв'яжіться з нами за вказаними контактами.
     </p>
+    
+    <p class="contact-info">
+      📍 Адреса: вул. Тарабалки Степана, 20, м.Коломия, Івано-Франківська обл., 78203<br>
+      ☎ Телефон: (03433) 4 - 77 - 26<br>
+      ✉ Email: support@weaponshop.com<br>
+      🕒 Години роботи: Пн-Пт: 10:00 - 18:00, Сб-Нд: вихідний
+    </p>
 
     <div class="contact-form">
       <h2>Залиште своє повідомлення</h2>
@@ -35,6 +42,20 @@
       </div>
     </div>
   </div>
+
+
+    <div class="map-container">
+      <iframe 
+        src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d1303.7588579640371!2d25.041431651290047!3d48.53273961853463!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x4736d29057abf5b3%3A0xbe99f0c2dee6921f!2z0JrQvtC70L7QvNC40LnRgdGM0LrQuNC5INC_0L7Qu9GW0YLQtdGF0L3RltGH0L3QuNC5INGE0LDRhdC-0LLQuNC5INC60L7Qu9C10LTQtiDQndCw0YbRltC-0L3QsNC70YzQvdC-0LPQviDRg9C90ZbQstC10YDRgdC40YLQtdGC0YMgwqvQm9GM0LLRltCy0YHRjNC60LAg0L_QvtC70ZbRgtC10YXQvdGW0LrQsMK7!5e1!3m2!1suk!2sua!4v1739955090276!5m2!1suk!2sua"
+        width="600"
+        height="450"
+        style="border:0;"
+        allowfullscreen=""
+        loading="lazy"
+        referrerpolicy="no-referrer-when-downgrade">
+      </iframe> 
+      
+    </div>
 </template>
 
 <script>
@@ -49,16 +70,13 @@ export default {
         email: '',
         message: '',
       },
-      showModal: false, // Для спливаючого вікна
+      showModal: false,
     };
   },
   methods: {
     submitForm() {
-      // Відправка електронної пошти
-      this.sendEmail(); // Викликаємо функцію відправки
+      this.sendEmail();
       console.log('Форма відправлена:', this.form);
-
-      // Показати спливаюче вікно
       this.showModal = true;
       this.resetForm();
     },
@@ -76,8 +94,6 @@ export default {
         from_email: this.form.email,
         message: this.form.message,
       };
-
-      // Використовуємо EmailJS для відправки електронної пошти
       emailjs.send('service_3hl50gn', 'template_uzyroa8', emailData, 'AUPCw9H6RMRp-xYbl')
         .then(response => {
           console.log('Email sent successfully', response);
@@ -91,11 +107,16 @@ export default {
 </script>
 
 <style scoped>
-/* Стилі для контактної сторінки та форми */
 .contact-page {
   font-family: 'Arial', sans-serif;
   padding: 20px;
   text-align: center;
+  background: linear-gradient(135deg, #eceff1, #f5f7fa);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
 }
 
 h1 {
@@ -113,53 +134,56 @@ h1 {
 }
 
 .contact-form {
-  background-color: #f4f4f4;
-  padding: 20px;
-  margin: 30px 0;
-  border-radius: 8px;
+  background-color: white;
+  padding: 25px;
+  border-radius: 10px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  max-width: 500px;
+  width: 100%;
 }
 
 .contact-form h2 {
-  font-size: 2em;
+  font-size: 1.8em;
   color: #2e3b4e;
   margin-bottom: 15px;
 }
 
-.contact-form .form-group {
+.form-group {
   margin-bottom: 15px;
   text-align: left;
 }
 
-.contact-form label {
+label {
   font-size: 1.1em;
   color: #333;
+  display: block;
+  margin-bottom: 5px;
 }
 
-.contact-form input,
-.contact-form textarea {
+input,
+textarea {
   width: 100%;
   padding: 10px;
-  margin-top: 5px;
   font-size: 1em;
   border: 1px solid #ccc;
   border-radius: 5px;
 }
 
-.contact-form button {
-  padding: 10px 20px;
+.submit-btn {
+  padding: 12px 20px;
   background-color: #007bff;
   color: white;
   border: none;
   border-radius: 5px;
   font-size: 1.1em;
   cursor: pointer;
+  width: 100%;
 }
 
-.contact-form button:hover {
+.submit-btn:hover {
   background-color: #0056b3;
 }
 
-/* Стилі для спливаючого вікна */
 .modal {
   position: fixed;
   top: 0;
@@ -180,6 +204,7 @@ h1 {
   text-align: center;
   max-width: 400px;
   width: 100%;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
 }
 
 .modal-content button {
@@ -189,9 +214,17 @@ h1 {
   border: none;
   border-radius: 5px;
   cursor: pointer;
+  margin-top: 10px;
 }
 
 .modal-content button:hover {
   background-color: #218838;
+}
+
+.map-container {
+  max-width: 600px;
+  margin: 20px auto;
+  border-radius: 8px;
+  overflow: hidden;
 }
 </style>

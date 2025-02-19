@@ -27,21 +27,18 @@
           @click="onSelect(item)"
           class="suggestion-item"
         >
-          <!-- Відображення фото (якщо воно існує) -->
           <img
             v-if="item.image"
             :src="item.image"
             alt="Фото"
             class="suggestion-img"
           />
-          <!-- Якщо фото немає, можна вивести placeholder -->
           <img
             v-else
             src="/path/to/placeholder.jpg"
             alt="Фото"
             class="suggestion-img"
           />
-          <!-- Відображення назви -->
           <span v-if="item.type === 'weapon'">
             🔫 {{ item.name }}
           </span>
@@ -56,11 +53,11 @@
     <router-link v-if="!user" to="/signin" class="login-btn">Увійти</router-link>
 
     <!-- Якщо користувач авторизований -->
-    <div v-else class="user-menu">
+    <div v-else ref="userMenu" class="user-menu">
       <span @click="toggleMenu" class="username">{{ user.username }}</span>
       <div v-if="menuOpen" class="dropdown-menu">
         <router-link to="/profile" class="dropdown-item">Профіль</router-link>
-        <button @click="logout" class="dropdown-item">Вийти</button>
+        <button @click="logout" class="logout-btn">Вийти</button>
       </div>
     </div>
   </nav>
@@ -81,14 +78,30 @@ export default {
         { id: 3, name: "Про нас", link: "/about" },
         { id: 4, name: "Контакти", link: "/contact" }
       ],
-      // Дані для пошуку
       searchTerm: '',
       suggestions: []
     };
   },
+  mounted() {
+    document.addEventListener("click", this.handleOutsideClick);
+  },
+  unmounted() {
+    document.removeEventListener("click", this.handleOutsideClick);
+  },
+  watch: {
+    // При зміні маршруту закриваємо меню
+    $route() {
+      this.menuOpen = false;
+    }
+  },
   methods: {
     toggleMenu() {
       this.menuOpen = !this.menuOpen;
+    },
+    handleOutsideClick(event) {
+      if (this.menuOpen && this.$refs.userMenu && !this.$refs.userMenu.contains(event.target)) {
+        this.menuOpen = false;
+      }
     },
     async logout() {
       await fetch('http://localhost/weaponshop/php/logout.php', {
@@ -97,14 +110,13 @@ export default {
       });
       this.$emit("logout");
       this.menuOpen = false;
+      this.$router.push("/"); // Редірект після виходу
     },
     onSearchInput() {
-      // Якщо поле пошуку порожнє, скидаємо пропозиції
       if (!this.searchTerm) {
         this.suggestions = [];
         return;
       }
-      // Робимо запит до global_search.php
       fetch(`http://localhost/weaponshop/php/global_search.php?term=${encodeURIComponent(this.searchTerm)}`)
         .then(response => response.json())
         .then(data => {
@@ -113,15 +125,11 @@ export default {
         .catch(err => console.error('Помилка пошуку:', err));
     },
     onSelect(item) {
-      // Переходимо на відповідну сторінку в залежності від типу
       if (item.type === 'weapon') {
-        // Наприклад, маршрут для зброї: /weapon/:id
         this.$router.push(`/weapon/${item.id}`);
       } else if (item.type === 'category') {
-        // Для категорій: /category/:id
         this.$router.push(`/category/${item.id}`);
       }
-      // Очищаємо поле пошуку та список підказок
       this.searchTerm = '';
       this.suggestions = [];
     }
@@ -147,17 +155,16 @@ export default {
 
 .search-container {
   position: relative;
-  margin-left: 20px; /* щоб трохи відступити від меню */
+  margin-left: 20px;
 }
 
 .search-input {
   padding: 5px 8px;
-  /* інші стилі за бажанням */
 }
 
 .suggestion-list {
   position: absolute;
-  top: 30px; /* відступ від поля вводу */
+  top: 30px;
   left: 0;
   width: 200px;
   background: #fff;
@@ -165,7 +172,7 @@ export default {
   list-style: none;
   margin: 0;
   padding: 0;
-  z-index: 10; /* щоб перекривало інші елементи */
+  z-index: 10;
 }
 
 .suggestion-item {
@@ -207,6 +214,11 @@ export default {
   padding: 8px 12px;
   background-color: #e74c3c;
   border-radius: 5px;
+  transition: background 0.3s;
+}
+
+.login-btn:hover {
+  background-color: #c0392b;
 }
 
 .user-menu {
@@ -224,17 +236,34 @@ export default {
   border-radius: 5px;
   box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
   padding: 10px;
+  min-width: 150px;
 }
 
 .dropdown-item {
   display: block;
   text-decoration: none;
   color: black;
-  padding: 5px 10px;
+  padding: 8px 10px;
   cursor: pointer;
 }
 
 .dropdown-item:hover {
   background: #f1f1f1;
+}
+
+.logout-btn {
+  width: 100%;
+  background-color: #e74c3c;
+  color: white;
+  border: none;
+  padding: 8px 10px;
+  cursor: pointer;
+  font-size: 1rem;
+  border-radius: 5px;
+  transition: background 0.3s;
+}
+
+.logout-btn:hover {
+  background-color: #c0392b;
 }
 </style>
