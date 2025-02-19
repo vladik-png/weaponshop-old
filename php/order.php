@@ -1,55 +1,68 @@
 <?php
-header("Content-Type: application/json");
-require_once "db.php"; // Файл підключення до бази даних
-
 session_start();
 
-if ($_SERVER["REQUEST_METHOD"] === "GET") {
-    // Отримати адресу користувача
-    if (!isset($_SESSION['user_id'])) {
-        echo json_encode(["error" => "Користувач не авторизований"]);
-        exit;
-    }
+header("Access-Control-Allow-Origin: http://localhost:8080");
+header("Access-Control-Allow-Credentials: true");
+header("Access-Control-Allow-Methods: GET, OPTIONS");
+header("Access-Control-Allow-Headers: Content-Type, Authorization");
+header('Content-Type: application/json');
 
-    $user_id = $_SESSION['user_id'];
-    $stmt = $conn->prepare("SELECT id, country, city, branch FROM addresses WHERE user_id = ?");
-    $stmt->bind_param("i", $user_id);
-    $stmt->execute();
-    $result = $stmt->get_result();
-    
-    if ($result->num_rows > 0) {
-        $address = $result->fetch_assoc();
-        echo json_encode(["address" => $address]);
-    } else {
-        echo json_encode(["error" => "Адреса не знайдена"]);
-    }
+$host = 'localhost';
+$dbname = 'weapon';
+$username = 'root';
+$password = '';
+
+
+// Дані з фронтенду
+$user_id    = isset($data['user_id']) ? intval($data['user_id']) : 0;
+$cart       = isset($data['cart']) ? $data['cart'] : [];
+$shipping   = isset($data['shipping']) ? $data['shipping'] : '';
+$payment    = isset($data['payment']) ? $data['payment'] : '';
+$address_id = isset($data['address_id']) ? intval($data['address_id']) : null;
+
+// Якщо користувач не авторизований або не передано user_id, повертаємо помилку
+if ($user_id <= 0) {
+    http_response_code(400);
+    echo json_encode(['message' => 'Користувач не авторизований або не передано user_id.']);
     exit;
 }
 
-if ($_SERVER["REQUEST_METHOD"] === "POST") {
-    $data = json_decode(file_get_contents("php://input"), true);
-
-    if (!isset($data["user_id"], $data["cart"], $data["address_id"])) {
-        echo json_encode(["error" => "Некоректні дані"]);
-        exit;
-    }
-
-    $user_id = intval($data["user_id"]);
-    $cart = json_encode($data["cart"]);
-    $total = array_reduce($data["cart"], function ($sum, $item) {
-        return $sum + ($item["price"] * $item["quantity"]);
-    }, 0);
-    $address_id = intval($data["address_id"]);
-
-    $stmt = $conn->prepare("INSERT INTO orders (user_id, items, total, address_id) VALUES (?, ?, ?, ?)");
-    $stmt->bind_param("isdi", $user_id, $cart, $total, $address_id);
-
-    if ($stmt->execute()) {
-        echo json_encode(["message" => "Замовлення успішно створене"]);
-    } else {
-        echo json_encode(["error" => "Помилка при створенні замовлення"]);
-    }
-    exit;
+// Обчислюємо загальну суму замовлення
+$total = 0;
+foreach ($cart as $item) {
+    $price = isset($item['price']) ? floatval($item['price']) : 0;
+    $quantity = isset($item['quantity']) ? intval($item['quantity']) : 1;
+    $total += $price * $quantity;
 }
 
-echo json_encode(["error" => "Непідтримуваний запит"]);
+// Формуємо JSON для колонки `items`
+$itemsData = [
+    'cart'     => $cart,
+    'shipping' => $shipping,
+    'payment'  => $payment
+];
+$itemsJson = json_encode($itemsData, JSON_UNESCAPED_UNICODE);
+
+try {
+    // Підключення до бази даних (адаптуйте параметри під ваш сервер)
+    $pdo = new PDO('mysql:host=localhost;dbname=weaponshop', 'root', '');
+    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+
+    // Вставка даних у таблицю orders
+    $sql = "INSERT INTO orders (user_id, items, total, address_id) VALUES (?, ?, ?, ?)";
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute([$user_id, $itemsJson, $total, $address_id]);
+
+    $orderId = $pdo->lastInsertId();
+
+    echo json_encode([
+        'message' => 'Замовлення успішно оформлено!',
+        'order_id' => $orderId
+    ]);
+} catch (Exception $e) {
+    http_response_code(500);
+    echo json_encode([
+        'message' => 'Помилка при оформленні замовлення.',
+        'error'   => $e->getMessage()
+    ]);
+}

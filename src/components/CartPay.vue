@@ -1,5 +1,5 @@
-<template>  
-  <div>
+<template>   
+  <div v-if="cart.length > 0 && $route.name !== 'Order'">
     <!-- Іконка кошика -->
     <div class="cart-button" @click="toggleCart">
       <img src="@/assets/shopping.png" alt="Кошик" />
@@ -31,8 +31,8 @@
 </template>
 
 <script>
-import { ref } from "vue";
-import { useRouter } from "vue-router";
+import { ref, computed } from "vue";
+import { useRouter, useRoute } from "vue-router";
 
 export default {
   props: {
@@ -44,6 +44,10 @@ export default {
   setup(props, { emit }) {
     const showCart = ref(false);
     const router = useRouter();
+    const route = useRoute();
+
+    // Визначаємо, чи кошик має бути видимим
+    const isCartVisible = computed(() => props.cart.length > 0 && route.name !== "Order");
 
     const toggleCart = () => {
       showCart.value = !showCart.value;
@@ -55,14 +59,13 @@ export default {
 
     const checkout = () => {
       if (props.cart.length === 0) return;
-      router.push({ name: "Order" }); // Переходить на сторінку замовлення
+      router.push({ name: "Order" });
     };
 
-    return { showCart, toggleCart, clearCart, checkout };
+    return { showCart, toggleCart, clearCart, checkout, isCartVisible };
   }
 };
 </script>
-
 
 
 <style scoped>
