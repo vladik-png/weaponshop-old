@@ -36,7 +36,7 @@ if (!$data) {
 // Отримуємо email з форми, якщо він є
 $email = trim($data['email'] ?? '');
 if (empty($email)) {
-    $email = "guest@example.com"; // Якщо користувач не ввів email
+    $email = "guest@gmail.com"; // Якщо користувач не ввів email
 }
 
 // Якщо користувач не авторизований, створюємо гостьовий акаунт з його email
@@ -115,26 +115,38 @@ foreach ($cart as $item) {
     }
 }
 
-$itemsJson = json_encode($cart);
-
+// Створення замовлення в таблиці `orders`
 try {
     $pdo->beginTransaction();
     
     // Вставка замовлення
-    $sqlOrder = "INSERT INTO orders (user_id, items, total, address_id, shipping, payment)
-                 VALUES (:user_id, :items, :total, :address_id, :shipping, :payment)";
+    $sqlOrder = "INSERT INTO orders (user_id, total, address_id, shipping, payment)
+                 VALUES (:user_id, :total, :address_id, :shipping, :payment)";
     $stmtOrder = $pdo->prepare($sqlOrder);
     $stmtOrder->execute([
         ':user_id' => $user_id,
-        ':items' => $itemsJson,
         ':total' => $total,
         ':address_id' => $address_id,
         ':shipping' => $shipping,
         ':payment' => $payment
     ]);
     
-    // Оновлення кількості товарів
+    // Отримуємо ID останнього вставленого замовлення
+    $order_id = $pdo->lastInsertId();
+
+    // Вставка товарів у таблицю `order_items`
     foreach ($cart as $item) {
+        $sqlOrderItem = "INSERT INTO order_items (order_id, weapon_id, quantity, price)
+                         VALUES (:order_id, :weapon_id, :quantity, :price)";
+        $stmtOrderItem = $pdo->prepare($sqlOrderItem);
+        $stmtOrderItem->execute([
+            ':order_id' => $order_id,
+            ':weapon_id' => $item['id'],
+            ':quantity' => $item['quantity'],
+            ':price' => $item['price']
+        ]);
+        
+        // Оновлення кількості товарів
         $sqlSelect = "SELECT quantity FROM weapons WHERE id = :id";
         $stmtSelect = $pdo->prepare($sqlSelect);
         $stmtSelect->execute([':id' => $item['id']]);
