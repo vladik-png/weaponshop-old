@@ -178,11 +178,12 @@ export default {
 
 .radio-options label {
   display: flex;
-  align-items: center;
-  gap: 10px;
-  font-size: 16px;
-  cursor: pointer;
-  margin-bottom: 5px;
+    gap: 10px;
+    font-size: 16px;
+    cursor: pointer;
+    margin-bottom: 5px;
+    align-items: baseline;
+    flex-direction: row-reverse;
 }
 
 button {
