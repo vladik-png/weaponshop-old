@@ -11,16 +11,6 @@
     <div v-if="isFilterMenuVisible" class="filter-menu-overlay" @click="closeFilterMenu">
       <div class="filter-menu" @click.stop>
         <div class="filter-group">
-          <label for="category">Категорія:</label>
-          <select id="category" v-model="selectedCategory">
-            <option value="">Всі категорії</option>
-            <option v-for="cat in categories" :key="cat.id" :value="cat.id">
-              {{ cat.name }}
-            </option>
-          </select>
-        </div>
-
-        <div class="filter-group">
           <label for="sortBy">Сортувати за:</label>
           <select id="sortBy" v-model="selectedSortBy">
             <option value="name">Назвою</option>
@@ -51,7 +41,7 @@
         <p>{{ weapon.description }}</p>
         <p><strong>Ціна: </strong>{{ weapon.price }} грн</p>
         <p><strong>Кількість: </strong>{{ getAvailableQuantity(weapon) }}</p>
-        <p><strong>Категорія: </strong>{{ weapon.category_name }}</p>
+        <p><strong>Категорія: </strong>{{ getCategoryName(weapon.category_id) }}</p>
         <button 
           @click="addToCart(weapon)" 
           :disabled="getAvailableQuantity(weapon) <= 0"
@@ -62,7 +52,7 @@
       </div>
     </div>
   </div>
-</template> 
+</template>
 
 <script>
 export default {
@@ -81,10 +71,17 @@ export default {
       categories: [],  
       errorMessage: null,  
       isFilterMenuVisible: false,  
-      selectedCategory: '',  
       selectedSortBy: 'name',  
       selectedOrder: 'ASC',  
     };
+  },
+  watch: {
+    '$route.query.search': {
+      immediate: true,
+      handler() {
+        this.filterWeapons();
+      }
+    }
   },
   mounted() {
     this.loadWeapons();
@@ -93,13 +90,10 @@ export default {
   methods: {
     loadWeapons() {
       fetch("http://localhost/weaponshop/php/get_weapons.php")
-        .then(response => {
-          if (!response.ok) throw new Error("Помилка сервера: " + response.status);
-          return response.json();
-        })
+        .then(response => response.json())
         .then(data => {
           this.weapons = data;
-          this.filteredWeapons = data; 
+          this.filterWeapons();
         })
         .catch(error => {
           this.errorMessage = "Не вдалося завантажити список зброї.";
@@ -108,10 +102,7 @@ export default {
     },
     loadCategories() {
       fetch("http://localhost/weaponshop/php/get_categories.php")
-        .then(response => {
-          if (!response.ok) throw new Error("Помилка сервера: " + response.status);
-          return response.json();
-        })
+        .then(response => response.json())
         .then(data => {
           this.categories = data;  
         })
@@ -119,18 +110,15 @@ export default {
           console.error("Помилка завантаження категорій:", error);
         });
     },
+    getCategoryName(categoryId) {
+      const category = this.categories.find(cat => cat.id === categoryId);
+      return category ? category.name : 'Невідома категорія';
+    },
     addToCart(weapon) {
-      const cartItem = this.cart.find(item => item.id === weapon.id);
-      if (cartItem) {
-        cartItem.quantity++;
-      } else {
-        this.$emit('add-to-cart', { ...weapon, quantity: 1 });
-      }
-      this.$emit('update-weapon-quantity', { id: weapon.id, quantity: weapon.quantity - 1 });
+      this.$emit('add-to-cart', { ...weapon, quantity: 1 });
     },
     getAvailableQuantity(weapon) {
-      const cartItem = this.cart.find(item => item.id === weapon.id);
-      return cartItem ? weapon.quantity - cartItem.quantity : weapon.quantity;
+      return weapon.quantity;
     },
     toggleFilterMenu() {
       this.isFilterMenuVisible = !this.isFilterMenuVisible;
@@ -143,12 +131,11 @@ export default {
       this.closeFilterMenu();
     },
     filterWeapons() {
-      let filtered = this.weapons;
-      if (this.selectedCategory) {
-        filtered = filtered.filter(weapon => weapon.category_id == this.selectedCategory);
-      }
-      this.filteredWeapons = filtered;  
-      this.sortWeapons();  
+      let searchQuery = this.$route.query.search ? this.$route.query.search.toLowerCase() : '';
+      this.filteredWeapons = this.weapons.filter(weapon => 
+        weapon.name.toLowerCase().includes(searchQuery)
+      );
+      this.sortWeapons();
     },
     sortWeapons() {
       this.filteredWeapons.sort((a, b) => {
@@ -160,15 +147,13 @@ export default {
         } else if (this.selectedSortBy === 'quantity') {
           comparison = a.quantity - b.quantity;
         }
-        if (this.selectedOrder === 'DESC') {
-          comparison = -comparison;
-        }
-        return comparison;
+        return this.selectedOrder === 'DESC' ? -comparison : comparison;
       });
     }
   }
 };
 </script>
+
 
 
 <style scoped>

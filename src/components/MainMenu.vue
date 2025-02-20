@@ -9,61 +9,32 @@
         >{{ item.name }}</router-link>
       </li>
 
-      <!-- Кнопка "Адмін панель" відображається лише для адміністратора -->
       <li class="menu-item" v-if="isAdmin">
-        <router-link 
-          to="/admin" 
-          active-class="active-link"
-          class="menu-link"
-        >
+        <router-link to="/admin" active-class="active-link" class="menu-link">
           Адмін панель
         </router-link>
       </li>
     </ul>
 
-    <!-- Пошук -->
-    <div class="search-container">
+    <div class="search-container" ref="searchContainer" @click="closeSearch">
       <input
         type="text"
         v-model="searchTerm"
         @input="onSearchInput"
         placeholder="Пошук..."
         class="search-input"
+        @click.stop
       />
-      <!-- Випадаючий список пропозицій -->
       <ul v-if="suggestions.length" class="suggestion-list">
-        <li
-          v-for="(item, index) in suggestions"
-          :key="index"
-          @click="onSelect(item)"
-          class="suggestion-item"
-        >
-          <img
-            v-if="item.image"
-            :src="item.image"
-            alt="Фото"
-            class="suggestion-img"
-          />
-          <img
-            v-else
-            src="/path/to/placeholder.jpg"
-            alt="Фото"
-            class="suggestion-img"
-          />
-          <span v-if="item.type === 'weapon'">
-            🔫 {{ item.name }}
-          </span>
-          <span v-else-if="item.type === 'category'">
-            📂 {{ item.name }}
-          </span>
+        <li v-for="(item, index) in suggestions" :key="index" @click="onSelect(item)" class="suggestion-item">
+          <img v-if="item.image" :src="item.image" alt="Фото" class="suggestion-img" />
+          <img v-else src="/path/to/placeholder.jpg" alt="Фото" class="suggestion-img" />
+          <span> {{ item.name }}</span>
         </li>
       </ul>
     </div>
 
-    <!-- Якщо користувач не авторизований -->
     <router-link v-if="!user" to="/signin" class="login-btn">Увійти</router-link>
-
-    <!-- Якщо користувач авторизований -->
     <div v-else ref="userMenu" class="user-menu">
       <span @click="toggleMenu" class="username">{{ user.username }}</span>
       <div v-if="menuOpen" class="dropdown-menu">
@@ -94,31 +65,13 @@ export default {
     };
   },
   computed: {
-    // Визначаємо, чи є користувач адміністратором
     isAdmin() {
       return this.user && (this.user.role === 'admin' || this.user.isAdmin === true);
-    }
-  },
-  mounted() {
-    document.addEventListener("click", this.handleOutsideClick);
-  },
-  unmounted() {
-    document.removeEventListener("click", this.handleOutsideClick);
-  },
-  watch: {
-    // При зміні маршруту закриваємо меню
-    $route() {
-      this.menuOpen = false;
     }
   },
   methods: {
     toggleMenu() {
       this.menuOpen = !this.menuOpen;
-    },
-    handleOutsideClick(event) {
-      if (this.menuOpen && this.$refs.userMenu && !this.$refs.userMenu.contains(event.target)) {
-        this.menuOpen = false;
-      }
     },
     async logout() {
       await fetch('http://localhost/weaponshop/php/logout.php', {
@@ -127,7 +80,7 @@ export default {
       });
       this.$emit("logout");
       this.menuOpen = false;
-      this.$router.push("/"); // Редірект після виходу
+      this.$router.push("/");
     },
     onSearchInput() {
       if (!this.searchTerm) {
@@ -143,16 +96,29 @@ export default {
     },
     onSelect(item) {
       if (item.type === 'weapon') {
-        this.$router.push(`/weapon/${item.id}`);
-      } else if (item.type === 'category') {
-        this.$router.push(`/category/${item.id}`);
+        this.$router.push({ path: '/weapons', query: { search: item.name } });
       }
       this.searchTerm = '';
       this.suggestions = [];
+    },
+    closeSearch(event) {
+      if (!this.$refs.searchContainer.contains(event.target)) {
+        this.suggestions = [];
+        this.searchTerm = '';
+      }
     }
+  },
+  mounted() {
+    document.addEventListener('click', this.closeSearch);
+  },
+  beforeUnmount() { // Замінили beforeDestroy на beforeUnmount
+    document.removeEventListener('click', this.closeSearch);
   }
 };
 </script>
+
+
+
 
 <style scoped>
 .main-menu {
@@ -161,6 +127,7 @@ export default {
   align-items: center;
   background-color: #333;
   padding: 1rem;
+  position: relative;
 }
 
 .menu-list {
@@ -168,45 +135,7 @@ export default {
   display: flex;
   margin: 0;
   padding: 0;
-}
-
-.search-container {
-  position: relative;
-  margin-left: 20px;
-}
-
-.search-input {
-  padding: 5px 8px;
-}
-
-.suggestion-list {
-  position: absolute;
-  top: 30px;
-  left: 0;
-  width: auto;
-  background: #fff;
-  border: 1px solid #ccc;
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  z-index: 10;
-}
-
-.suggestion-item {
-  padding: 5px 10px;
-  cursor: pointer;
-}
-
-.suggestion-item:hover {
-  background-color: #eee;
-}
-
-.suggestion-img {
-  width: 40px;
-  height: 40px;
-  object-fit: cover;
-  margin-right: 10px;
-  border-radius: 4px;
+  align-items: center; /* Вирівнює елементи меню по вертикалі */
 }
 
 .menu-item {
@@ -224,6 +153,56 @@ export default {
   color: #f39c12;
 }
 
+.search-container {
+  position: relative;
+  margin-left: 20px;
+  flex-grow: 1; /* Збільшує область для пошуку, щоб вона займала все доступне місце */
+  display: flex;
+  justify-content: flex-end; /* Вирівнює пошуковий блок праворуч */
+}
+
+.search-input {
+  padding: 5px 10px;
+  font-size: 16px;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+  width: 250px; /* Фіксована ширина для пошукового поля */
+  box-sizing: border-box;
+}
+
+.suggestion-list {
+  position: absolute;
+  top: 35px;
+  width: 250px;
+  background: #fff;
+  border: 1px solid #ccc;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 400px;
+  overflow-y: auto;
+  z-index: 10;
+  border-radius: 5px;
+}
+
+.suggestion-item {
+  padding: 10px 15px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.suggestion-item:hover {
+  background-color: #eee;
+}
+
+.suggestion-img {
+  width: 50px;
+  height: 50px;
+  object-fit: cover;
+  margin-right: 15px;
+  border-radius: 4px;
+}
+
 .login-btn {
   text-decoration: none;
   color: white;
@@ -232,6 +211,7 @@ export default {
   background-color: #e74c3c;
   border-radius: 5px;
   transition: background 0.3s;
+  margin-left: 20px; /* Відступ між кнопками */
 }
 
 .login-btn:hover {
@@ -243,6 +223,12 @@ export default {
   cursor: pointer;
   color: white;
   font-size: 1.2rem;
+  display: flex;
+  align-items: center; /* Вирівнює елементи меню користувача по вертикалі */
+}
+
+.username {
+  margin-right: 15px; /* Відступ між іменем користувача і кнопкою меню */
 }
 
 .dropdown-menu {
@@ -253,7 +239,7 @@ export default {
   border-radius: 5px;
   box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
   padding: 10px;
-  min-width: 150px; 
+  min-width: 150px;
 }
 
 .dropdown-item {
