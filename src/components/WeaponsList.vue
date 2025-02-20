@@ -10,6 +10,18 @@
 
     <div v-if="isFilterMenuVisible" class="filter-menu-overlay" @click="closeFilterMenu">
       <div class="filter-menu" @click.stop>
+        <!-- Фільтр за категорією -->
+        <div class="filter-group">
+          <label for="category">Категорія:</label>
+          <select id="category" v-model="selectedCategory">
+            <option value="">Всі категорії</option>
+            <option v-for="cat in categories" :key="cat.id" :value="cat.id">
+              {{ cat.name }}
+            </option>
+          </select>
+        </div>
+
+        <!-- Сортування за -->
         <div class="filter-group">
           <label for="sortBy">Сортувати за:</label>
           <select id="sortBy" v-model="selectedSortBy">
@@ -19,6 +31,7 @@
           </select>
         </div>
 
+        <!-- Напрямок сортування -->
         <div class="filter-group">
           <label for="order">Напрямок сортування:</label>
           <select id="order" v-model="selectedOrder">
@@ -51,6 +64,22 @@
         </button>
       </div>
     </div>
+
+    <!-- Кнопка "Назад" розміщена нижче списку зброї, вирівняна зліва та зменшена -->
+    <button class="back-arrow" @click="goBack">
+      <svg
+        width="24"
+        height="24"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <polyline points="15 18 9 12 15 6"></polyline>
+      </svg>
+    </button>
   </div>
 </template>
 
@@ -66,13 +95,14 @@ export default {
   },
   data() {
     return {
-      weapons: [],  
-      filteredWeapons: [],  
-      categories: [],  
-      errorMessage: null,  
-      isFilterMenuVisible: false,  
-      selectedSortBy: 'name',  
-      selectedOrder: 'ASC',  
+      weapons: [],
+      filteredWeapons: [],
+      categories: [],
+      errorMessage: null,
+      isFilterMenuVisible: false,
+      selectedCategory: '',
+      selectedSortBy: 'name',
+      selectedOrder: 'ASC',
     };
   },
   watch: {
@@ -88,6 +118,10 @@ export default {
     this.loadCategories();
   },
   methods: {
+    // Метод для повернення на попередню сторінку
+    goBack() {
+      this.$router.go(-1);
+    },
     loadWeapons() {
       fetch("http://localhost/weaponshop/php/get_weapons.php")
         .then(response => response.json())
@@ -104,21 +138,28 @@ export default {
       fetch("http://localhost/weaponshop/php/get_categories.php")
         .then(response => response.json())
         .then(data => {
-          this.categories = data;  
+          this.categories = data;
         })
         .catch(error => {
           console.error("Помилка завантаження категорій:", error);
         });
     },
     getCategoryName(categoryId) {
-      const category = this.categories.find(cat => cat.id === categoryId);
+      const category = this.categories.find(cat => cat.id == categoryId);
       return category ? category.name : 'Невідома категорія';
     },
     addToCart(weapon) {
-      this.$emit('add-to-cart', { ...weapon, quantity: 1 });
+      const cartItem = this.cart.find(item => item.id === weapon.id);
+      if (cartItem) {
+        cartItem.quantity++;
+      } else {
+        this.$emit('add-to-cart', { ...weapon, quantity: 1 });
+      }
+      this.$emit('update-weapon-quantity', { id: weapon.id, quantity: weapon.quantity - 1 });
     },
     getAvailableQuantity(weapon) {
-      return weapon.quantity;
+      const cartItem = this.cart.find(item => item.id === weapon.id);
+      return cartItem ? weapon.quantity - cartItem.quantity : weapon.quantity;
     },
     toggleFilterMenu() {
       this.isFilterMenuVisible = !this.isFilterMenuVisible;
@@ -131,10 +172,22 @@ export default {
       this.closeFilterMenu();
     },
     filterWeapons() {
+      let filtered = this.weapons;
+
+      // Фільтрація за пошуковим запитом (якщо використовується)
       let searchQuery = this.$route.query.search ? this.$route.query.search.toLowerCase() : '';
-      this.filteredWeapons = this.weapons.filter(weapon => 
-        weapon.name.toLowerCase().includes(searchQuery)
-      );
+      if (searchQuery) {
+        filtered = filtered.filter(weapon =>
+          weapon.name.toLowerCase().includes(searchQuery)
+        );
+      }
+
+      // Фільтрація за вибраною категорією
+      if (this.selectedCategory) {
+        filtered = filtered.filter(weapon => weapon.category_id == this.selectedCategory);
+      }
+
+      this.filteredWeapons = filtered;
       this.sortWeapons();
     },
     sortWeapons() {
@@ -161,6 +214,7 @@ export default {
   display: flex;
   flex-direction: column;
   align-items: center;
+  margin-top: 10px;
 }
 
 .weapon-item {
@@ -302,5 +356,6 @@ export default {
 .filter-actions button:hover {
   background-color: #45a049;
 }
+
 
 </style>

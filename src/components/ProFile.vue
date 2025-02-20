@@ -155,8 +155,13 @@ const logout = async () => {
   try {
     await fetch('http://localhost/weaponshop/php/logout.php', {
       method: 'POST',
-      credentials: 'include',
+      credentials: 'include'
     });
+    // Очищаємо дані користувача:
+    username.value = '';
+    email.value = '';
+    role.value = '';
+    userId.value = '';
     router.push('/');
   } catch (error) {
     console.error('Помилка при виході:', error);

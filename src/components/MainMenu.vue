@@ -140,7 +140,7 @@ export default {
 
 .menu-item {
   font-size: 1.2rem;
-  margin-right: 20px;
+  margin-right: 40px;
 }
 
 .menu-link {
@@ -156,8 +156,10 @@ export default {
 .search-container {
   position: relative;
   margin-left: 20px;
+  margin-right: 20px;
   flex-grow: 1; /* Збільшує область для пошуку, щоб вона займала все доступне місце */
   display: flex;
+  align-items: center;
   justify-content: flex-end; /* Вирівнює пошуковий блок праворуч */
 }
 
@@ -216,6 +218,7 @@ export default {
 
 .login-btn:hover {
   background-color: #c0392b;
+  align-items: center;
 }
 
 .user-menu {
