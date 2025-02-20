@@ -1,5 +1,12 @@
 <template>
   <div class="weapons-list">
+    <!-- Кнопка "Назад" перенесена у верхню частину -->
+    <button class="back-arrow" @click="goBack">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="15 18 9 12 15 6"></polyline>
+      </svg>
+    </button>
+
     <h1>Список зброї</h1>
 
     <div class="filters">
@@ -67,13 +74,6 @@
         </div>
       </div>
     </div>
-
-    <!-- Кнопка "Назад" -->
-    <button class="back-arrow" @click="goBack">
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <polyline points="15 18 9 12 15 6"></polyline>
-      </svg>
-    </button>
   </div>
 </template>
 
@@ -200,6 +200,7 @@ export default {
 .weapons-list {
   font-family: 'Roboto', sans-serif;
   padding: 20px;
+  position: relative;
 }
 
 h1 {
@@ -208,13 +209,14 @@ h1 {
   color: #333;
 }
 
-/* Відображення плиткового макету для товарів */
+/* Контейнер для сітки товарів з обмеженням максимальної ширини */
 .weapons-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(250px, 300px));
   gap: 20px;
-  width: 100%;
-  margin-top: 20px;
+  margin: 20px auto;
+  justify-content: center;
+  padding: 0 20px;
 }
 
 /* Стилізація картки товару */
@@ -356,11 +358,12 @@ h1 {
 
 /* Стилізація кнопки "Назад" */
 .back-arrow {
-  margin-top: 20px;
+  position: absolute;
+  top: 20px;
+  left: 20px;
   background: none;
   border: none;
   cursor: pointer;
-  align-self: flex-start;
 }
 
 .back-arrow svg {

@@ -8,14 +8,12 @@
     </button>
 
     <h2>Профіль користувача</h2>
-
     <p>
       Ім'я користувача: {{ username }}
       <span v-if="role === 'admin'" class="admin-badge">Адміністратор</span>
     </p>
     <p>Email: {{ email }}</p>
     
-
     <!-- Відображення адреси -->
     <div class="address-section">
       <div v-if="address.country && address.city && address.branch">
@@ -27,14 +25,12 @@
       <div v-else>
         <p>Адреса не вказана</p>
       </div>
-
-      <!-- Анімована кнопка -->
       <button class="edit-btn" :class="{ active: isEditing }" @click="toggleEdit">
         {{ isEditing ? 'Закрити' : 'Редагувати' }}
       </button>
     </div>
 
-    <!-- Редагування адреси з покращеною анімацією -->
+    <!-- Редагування адреси -->
     <Transition name="smooth-fade">
       <div v-if="isEditing" class="edit-address">
         <h4>Введіть нову адресу</h4>
@@ -46,6 +42,29 @@
       </div>
     </Transition>
 
+    <!-- Відображення замовлень -->
+    <div class="orders-section">
+      <h3>Мої замовлення</h3>
+      <ul v-if="orders.length">
+        <li v-for="order in orders" :key="order.id">
+          <!-- Натискання на замовлення відкриває/закриває деталі -->
+          <div class="order-summary" @click="toggleOrderDetails(order)" style="cursor: pointer;">
+            Замовлення #{{ order.id }} – Сума: {{ order.total }} – Статус: {{ order.status || 'Невідомо' }}
+          </div>
+          <!-- Деталі замовлення -->
+          <div v-if="selectedOrder && selectedOrder.id === order.id" class="order-details">
+            <h4>Товари в замовленні:</h4>
+            <ul>
+              <li v-for="item in parseItems(order.items)" :key="item.id">
+                {{ item.name }} – Кількість: {{ item.quantity }} – Ціна: {{ item.price }}
+              </li>
+            </ul>
+          </div>
+        </li>
+      </ul>
+      <p v-else>Замовлень поки немає.</p>
+    </div>
+
     <!-- Повідомлення про помилки чи успіх -->
     <p v-if="message" class="error">{{ message }}</p>
 
@@ -55,12 +74,12 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, defineEmits } from 'vue';
 import { useRouter } from 'vue-router';
 
 const username = ref('');
 const email = ref('');
-const ordersCount = ref(0);
+const orders = ref([]);
 const address = ref({ country: '', city: '', branch: '', phone_number: '' });
 const newCountry = ref('');
 const newCity = ref('');
@@ -71,6 +90,9 @@ const role = ref('');
 const userId = ref('');
 const router = useRouter();
 const isEditing = ref(false);
+const selectedOrder = ref(null);
+
+const emit = defineEmits(["logout"]);
 
 const fetchUserData = async () => {
   try {
@@ -82,10 +104,10 @@ const fetchUserData = async () => {
     if (data.user) {
       username.value = data.user.username;
       email.value = data.user.email;
-      ordersCount.value = data.user.ordersCount || 0;
       role.value = data.user.role || '';
       userId.value = data.user.id;
       fetchAddress();
+      fetchOrders();
     } else {
       message.value = data.message || "Помилка отримання даних.";
       setTimeout(() => router.push('/login'), 2000);
@@ -111,6 +133,42 @@ const fetchAddress = async () => {
   } catch (error) {
     console.error('Помилка отримання адреси:', error);
     address.value = { country: '', city: '', branch: '', phone_number: '' };
+  }
+};
+
+const fetchOrders = async () => {
+  try {
+    const response = await fetch('http://localhost/weaponshop/php/order.php', {
+      method: 'GET',
+      credentials: 'include'
+    });
+    const data = await response.json();
+    if (data.status === "success" && data.orders) {
+      orders.value = data.orders;
+    } else {
+      orders.value = [];
+      console.error("Помилка отримання замовлень:", data.message);
+    }
+  } catch (error) {
+    console.error('Помилка запиту замовлень:', error);
+    orders.value = [];
+  }
+};
+
+const toggleOrderDetails = (order) => {
+  if (selectedOrder.value && selectedOrder.value.id === order.id) {
+    selectedOrder.value = null;
+  } else {
+    selectedOrder.value = order;
+  }
+};
+
+const parseItems = (items) => {
+  try {
+    return JSON.parse(items);
+  } catch (e) {
+    console.error("Помилка парсингу товарів:", e);
+    return [];
   }
 };
 
@@ -157,18 +215,23 @@ const logout = async () => {
       method: 'POST',
       credentials: 'include'
     });
-    // Очищаємо дані користувача:
+
+    // Очищення даних користувача
     username.value = '';
     email.value = '';
     role.value = '';
     userId.value = '';
+
+    // Емітуємо подію logout, щоб головне меню оновилося
+    emit("logout");
+
+    // Переадресація на головну сторінку
     router.push('/');
   } catch (error) {
     console.error('Помилка при виході:', error);
   }
 };
 
-// Опційна функція для кнопки "Назад"
 const goBack = () => {
   router.go(-1);
 };
@@ -180,8 +243,8 @@ const toggleEdit = () => {
 onMounted(fetchUserData);
 </script>
 
-
 <style scoped>
+/* Стилі залишаються без змін */
 .profile-card {
   position: relative;
   max-width: 500px;
@@ -193,11 +256,9 @@ onMounted(fetchUserData);
   text-align: center;
   transition: transform 0.3s ease;
 }
-
 .profile-card:hover {
   transform: translateY(-3px);
 }
-
 .back-arrow {
   position: absolute;
   top: 15px;
@@ -208,32 +269,26 @@ onMounted(fetchUserData);
   padding: 5px;
   outline: none;
 }
-
 .back-arrow svg {
   width: 24px;
   height: 24px;
   stroke: #3498db;
   transition: stroke 0.3s;
 }
-
 .back-arrow:hover svg {
   stroke: #217dbb;
 }
-
 h2 {
   margin-bottom: 20px;
   font-size: 2rem;
   color: #333;
   font-family: 'Roboto', sans-serif;
 }
-
 p {
   font-size: 1.1rem;
   margin: 10px 0;
   color: #555;
 }
-
-/* Стиль значка адміністратора */
 .admin-badge {
   background-color: #ff0000;
   color: #fff;
@@ -243,7 +298,6 @@ p {
   margin-left: 8px;
   vertical-align: middle;
 }
-
 .address-section {
   display: flex;
   justify-content: space-between;
@@ -251,11 +305,9 @@ p {
   margin-top: 15px;
   text-align: left;
 }
-
 .edit-address {
   margin-top: 15px;
 }
-
 input {
   padding: 10px;
   width: 100%;
@@ -265,12 +317,10 @@ input {
   margin-bottom: 10px;
   transition: border-color 0.3s;
 }
-
 input:focus {
   border-color: #3498db;
   outline: none;
 }
-
 button {
   padding: 10px 15px;
   border: none;
@@ -279,63 +329,47 @@ button {
   font-size: 1rem;
   transition: background-color 0.3s;
 }
-
 .edit-btn {
   background-color: #3498db;
   color: #fff;
 }
-
 .edit-btn:hover {
   background-color: #217dbb;
 }
-
 .save-btn {
   background-color: #2ecc71;
   color: #fff;
 }
-
 .save-btn:hover {
   background-color: #27ae60;
 }
-
 .logout-btn {
   background-color: #e74c3c;
   color: #fff;
   margin-top: 25px;
   width: 100%;
 }
-
 .logout-btn:hover {
   background-color: #c0392b;
 }
-
 .error {
   color: #4CAF50;
   font-weight: bold;
   margin-bottom: 15px;
 }
-
-.edit-btn {
-  background-color: #4CAF50;
-  color: #fff;
-  padding: 10px 15px;
-  border: none;
-  cursor: pointer;
+.order-summary {
+  padding: 10px;
+  background: #f1f1f1;
+  margin: 5px 0;
   border-radius: 5px;
-  font-size: 1rem;
-  transition: background-color 0.3s, transform 0.3s ease;
 }
-
-.edit-btn:hover {
-  background-color: #45a049;
+.order-details {
+  padding: 10px;
+  background: #fafafa;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  margin-bottom: 10px;
 }
-
-.edit-btn.active {
-  background-color: #e74c3c;
-  transform: scale(1.05);
-}
-
-/* Покращена плавна анімація */
 .smooth-fade-enter-active, .smooth-fade-leave-active {
   transition: opacity 0.4s ease, transform 0.4s ease;
 }
@@ -343,5 +377,4 @@ button {
   opacity: 0;
   transform: translateY(-15px);
 }
-
 </style>

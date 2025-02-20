@@ -1,6 +1,5 @@
 <?php
 session_start();
-
 header("Access-Control-Allow-Origin: http://localhost:8080");
 header("Access-Control-Allow-Credentials: true");
 header("Access-Control-Allow-Methods: GET, OPTIONS");
@@ -16,4 +15,5 @@ if (isset($_SESSION['user'])) {
 } else {
     echo json_encode(["message" => "Користувач не авторизований"]);
 }
+
 ?>

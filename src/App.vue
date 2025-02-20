@@ -1,7 +1,13 @@
 <template> 
   <div id="app">
     <MainMenu :user="user" @logout="logout" />
-    <router-view :cart="cart" @add-to-cart="addToCart" @login-success="checkAuth" />
+    <router-view 
+      :cart="cart" 
+      :user="user"
+      @add-to-cart="addToCart" 
+      @login-success="checkAuth" 
+      @logout="logout"
+    />
     <CartPay v-if="!isAdminPage" :cart="cart" @clear-cart="clearCart" />
     <FooterDown v-if="!isAdminPage" />
     <div v-if="cart.length === 0" class="empty-cart-message"></div>
@@ -12,7 +18,6 @@
 import MainMenu from './components/MainMenu.vue';
 import FooterDown from './components/FooterDown.vue';
 import CartPay from './components/CartPay.vue';
-
 
 export default {
   name: 'App',
@@ -59,6 +64,9 @@ export default {
           credentials: 'include',
         });
         this.user = null;
+
+        // Перевіряємо авторизацію ще раз після виходу
+        this.checkAuth();
       } catch (error) {
         console.error('Помилка при виході:', error);
       }
