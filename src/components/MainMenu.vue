@@ -55,7 +55,7 @@ export default {
     return {
       menuOpen: false,
       menuItems: [
-        { id: 1, name: "Головна", link: "/" },
+        { id: 1, name: "Weaponshop", link: "/" },
         { id: 2, name: "Зброя", link: "/weapons" },
         { id: 3, name: "Про нас", link: "/about" },
         { id: 4, name: "Контакти", link: "/contact" }
