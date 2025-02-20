@@ -38,7 +38,7 @@ export default {
 h2 {
   margin-bottom: 20px;
   color: #333;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-family: 'Roboto', sans-serif;
 }
 
 p {
@@ -59,11 +59,4 @@ p {
   color: #217dbb;
 }
 
-/* Адаптивність */
-@media (max-width: 480px) {
-  .login-container {
-    margin: 30px 10px;
-    padding: 20px;
-  }
-}
 </style>

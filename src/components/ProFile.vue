@@ -224,7 +224,7 @@ h2 {
   margin-bottom: 20px;
   font-size: 2rem;
   color: #333;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-family: 'Roboto', sans-serif;
 }
 
 p {

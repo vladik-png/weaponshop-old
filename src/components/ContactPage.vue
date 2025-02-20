@@ -1,6 +1,9 @@
 <template>
   <div class="contact-page">
-    <h1>Контакти</h1>
+    <div class="header">
+      <h1>Контакти</h1>
+    </div>
+    
     <p class="contact-description">
       Ми завжди готові допомогти вам! Якщо у вас є питання або потреба в консультації, заповніть форму нижче або зв'яжіться з нами за вказаними контактами.
     </p>
@@ -34,15 +37,12 @@
       </form>
     </div>
 
-    <!-- Спливаюче повідомлення -->
     <div v-if="showModal" class="modal">
       <div class="modal-content">
         <p>Ваше повідомлення відправлено!</p>
         <button @click="closeModal">Закрити</button>
       </div>
     </div>
-  </div>
-
 
     <div class="map-container">
       <iframe 
@@ -51,11 +51,10 @@
         height="450"
         style="border:0;"
         allowfullscreen=""
-        loading="lazy"
-        referrerpolicy="no-referrer-when-downgrade">
+        loading="lazy">
       </iframe> 
-      
     </div>
+  </div>
 </template>
 
 <script>
@@ -107,9 +106,17 @@ export default {
 </script>
 
 <style scoped>
+.header {
+  background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+    padding: 40px 20px;
+    border-radius: 8px;
+    color: #fff;
+    text-align: center;
+    margin-bottom: 0px;
+}
 .contact-page {
   font-family: 'Arial', sans-serif;
-  padding: 20px;
+  padding: 40px;
   text-align: center;
   background: linear-gradient(135deg, #eceff1, #f5f7fa);
   min-height: 100vh;
@@ -121,13 +128,13 @@ export default {
 
 h1 {
   font-size: 2.5em;
-  color: #2e3b4e;
+  color: #000000;
   margin-bottom: 20px;
 }
 
 .contact-description {
   font-size: 1.2em;
-  color: #555;
+  color: #000000;
   line-height: 1.6;
   max-width: 800px;
   margin: 0 auto 30px auto;
@@ -140,6 +147,7 @@ h1 {
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
   max-width: 500px;
   width: 100%;
+  margin-top: 20px;
 }
 
 .contact-form h2 {

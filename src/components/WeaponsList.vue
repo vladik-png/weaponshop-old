@@ -47,36 +47,30 @@
       </div>
     </div>
 
-    <div class="weapon-item" v-for="weapon in filteredWeapons" :key="weapon.id">
-      <img :src="weapon.image" :alt="weapon.name" class="weapon-image" />
-      <div class="weapon-details">
-        <h2>{{ weapon.name }}</h2>
-        <p>{{ weapon.description }}</p>
-        <p><strong>Ціна: </strong>{{ weapon.price }} грн</p>
-        <p><strong>Кількість: </strong>{{ getAvailableQuantity(weapon) }}</p>
-        <p><strong>Категорія: </strong>{{ getCategoryName(weapon.category_id) }}</p>
-        <button 
-          @click="addToCart(weapon)" 
-          :disabled="getAvailableQuantity(weapon) <= 0"
-          class="add-to-cart-btn"
-        >
-          Додати до кошика
-        </button>
+    <!-- Відображення товарів плиткою -->
+    <div class="weapons-grid">
+      <div class="weapon-item" v-for="weapon in filteredWeapons" :key="weapon.id">
+        <img :src="weapon.image" :alt="weapon.name" class="weapon-image" />
+        <div class="weapon-details">
+          <h2>{{ weapon.name }}</h2>
+          <p>{{ weapon.description }}</p>
+          <p><strong>Ціна: </strong>{{ weapon.price }} грн</p>
+          <p><strong>Кількість: </strong>{{ getAvailableQuantity(weapon) }}</p>
+          <p><strong>Категорія: </strong>{{ getCategoryName(weapon.category_id) }}</p>
+          <button 
+            @click="addToCart(weapon)" 
+            :disabled="getAvailableQuantity(weapon) <= 0"
+            class="add-to-cart-btn"
+          >
+            Додати до кошика
+          </button>
+        </div>
       </div>
     </div>
 
-    <!-- Кнопка "Назад" розміщена нижче списку зброї, вирівняна зліва та зменшена -->
+    <!-- Кнопка "Назад" -->
     <button class="back-arrow" @click="goBack">
-      <svg
-        width="24"
-        height="24"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        stroke-width="2"
-        stroke-linecap="round"
-        stroke-linejoin="round"
-      >
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <polyline points="15 18 9 12 15 6"></polyline>
       </svg>
     </button>
@@ -118,7 +112,6 @@ export default {
     this.loadCategories();
   },
   methods: {
-    // Метод для повернення на попередню сторінку
     goBack() {
       this.$router.go(-1);
     },
@@ -173,20 +166,15 @@ export default {
     },
     filterWeapons() {
       let filtered = this.weapons;
-
-      // Фільтрація за пошуковим запитом (якщо використовується)
       let searchQuery = this.$route.query.search ? this.$route.query.search.toLowerCase() : '';
       if (searchQuery) {
         filtered = filtered.filter(weapon =>
           weapon.name.toLowerCase().includes(searchQuery)
         );
       }
-
-      // Фільтрація за вибраною категорією
       if (this.selectedCategory) {
         filtered = filtered.filter(weapon => weapon.category_id == this.selectedCategory);
       }
-
       this.filteredWeapons = filtered;
       this.sortWeapons();
     },
@@ -207,47 +195,68 @@ export default {
 };
 </script>
 
-
-
 <style scoped>
+/* Встановлення шрифту "Roboto" */
 .weapons-list {
+  font-family: 'Roboto', sans-serif;
+  padding: 20px;
+}
+
+h1 {
+  text-align: center;
+  margin-bottom: 20px;
+  color: #333;
+}
+
+/* Відображення плиткового макету для товарів */
+.weapons-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 20px;
+  width: 100%;
+  margin-top: 20px;
+}
+
+/* Стилізація картки товару */
+.weapon-item {
+  background: #ffffff;
+  border-radius: 15px;
+  padding: 20px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
   display: flex;
   flex-direction: column;
   align-items: center;
-  margin-top: 10px;
+  text-align: center;
 }
 
-.weapon-item {
-  display: flex;
-  align-items: center;
-  margin: 20px;
-  border: 1px solid #ccc;
-  padding: 10px;
-  border-radius: 5px;
-  width: 80%;
+.weapon-item:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
 }
 
 .weapon-image {
-  width: 200px;
-  height: auto;
-  margin-right: 20px;
-}
-
-.weapon-details {
-  flex-grow: 1;
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
+  border-radius: 10px;
+  margin-bottom: 15px;
 }
 
 .weapon-details h2 {
-  font-size: 1.5em;
+  font-size: 20px;
   margin-bottom: 10px;
+  color: #333;
 }
 
 .weapon-details p {
+  font-size: 14px;
   margin: 5px 0;
+  color: #555;
 }
 
 .add-to-cart-btn {
-  padding: 8px 16px;
+  padding: 10px 20px;
   margin-top: 10px;
   background-color: #4CAF50;
   color: white;
@@ -266,18 +275,7 @@ export default {
   cursor: not-allowed;
 }
 
-.error-message {
-  color: red;
-  font-weight: bold;
-  margin-top: 20px;
-}
-
-.empty-message {
-  color: #888;
-  font-style: italic;
-  margin-top: 20px;
-}
-
+/* Стилізація фільтрів */
 .filters {
   display: flex;
   justify-content: flex-end;
@@ -287,7 +285,6 @@ export default {
 
 .sort-icon {
   margin-left: -10px;
-  left: -30px;
   position: relative;
   cursor: pointer;
 }
@@ -357,5 +354,16 @@ export default {
   background-color: #45a049;
 }
 
+/* Стилізація кнопки "Назад" */
+.back-arrow {
+  margin-top: 20px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  align-self: flex-start;
+}
 
+.back-arrow svg {
+  stroke: #333;
+}
 </style>
