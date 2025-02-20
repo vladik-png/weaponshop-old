@@ -61,16 +61,26 @@
         <table>
           <thead>
             <tr>
-              <th>Назва</th>
-              <th>Опис</th>
-              <th>Ціна</th>
-              <th>Кількість</th>
-              <th>Категорія</th>
+              <th @click="sortWeaponsBy('name')">
+                Назва <span v-if="sortKeyWeapons === 'name'">{{ sortOrderWeapons === 'asc' ? '↑' : '↓' }}</span>
+              </th>
+              <th @click="sortWeaponsBy('description')">
+                Опис <span v-if="sortKeyWeapons === 'description'">{{ sortOrderWeapons === 'asc' ? '↑' : '↓' }}</span>
+              </th>
+              <th @click="sortWeaponsBy('price')">
+                Ціна <span v-if="sortKeyWeapons === 'price'">{{ sortOrderWeapons === 'asc' ? '↑' : '↓' }}</span>
+              </th>
+              <th @click="sortWeaponsBy('quantity')">
+                Кількість <span v-if="sortKeyWeapons === 'quantity'">{{ sortOrderWeapons === 'asc' ? '↑' : '↓' }}</span>
+              </th>
+              <th @click="sortWeaponsBy('category_name')">
+                Категорія <span v-if="sortKeyWeapons === 'category_name'">{{ sortOrderWeapons === 'asc' ? '↑' : '↓' }}</span>
+              </th>
               <th v-if="userRole === 'admin'">Дії</th>
             </tr>
           </thead>
           <tbody>
-            <tr v-for="item in weapons" :key="item.id">
+            <tr v-for="item in sortedWeapons" :key="item.id">
               <td>{{ item.name }}</td>
               <td>{{ item.description }}</td>
               <td>{{ item.price }}</td>
@@ -101,12 +111,14 @@
         <table>
           <thead>
             <tr>
-              <th>Назва</th>
+              <th @click="sortCategoriesBy('name')">
+                Назва <span v-if="sortKeyCategories === 'name'">{{ sortOrderCategories === 'asc' ? '↑' : '↓' }}</span>
+              </th>
               <th>Дії</th>
             </tr>
           </thead>
           <tbody>
-            <tr v-for="cat in categories" :key="cat.id">
+            <tr v-for="cat in sortedCategories" :key="cat.id">
               <td>{{ cat.name }}</td>
               <td>
                 <button @click="editCategory(cat)">Редагувати</button>
@@ -123,16 +135,26 @@
         <table>
           <thead>
             <tr>
-              <th>ID Замовлення</th>
-              <th>ID користувача</th>
-              <th>Сума</th>
-              <th>Доставка</th>
-              <th>Оплата</th>
+              <th @click="sortBy('id')">
+                ID Замовлення <span v-if="sortKey === 'id'">{{ sortOrder === 'asc' ? '↑' : '↓' }}</span>
+              </th>
+              <th @click="sortBy('user_name')">
+                Ім'я користувача <span v-if="sortKey === 'user_name'">{{ sortOrder === 'asc' ? '↑' : '↓' }}</span>
+              </th>
+              <th @click="sortBy('total')">
+                Сума <span v-if="sortKey === 'total'">{{ sortOrder === 'asc' ? '↑' : '↓' }}</span>
+              </th>
+              <th @click="sortBy('shipping')">
+                Доставка <span v-if="sortKey === 'shipping'">{{ sortOrder === 'asc' ? '↑' : '↓' }}</span>
+              </th>
+              <th @click="sortBy('payment')">
+                Оплата <span v-if="sortKey === 'payment'">{{ sortOrder === 'asc' ? '↑' : '↓' }}</span>
+              </th>
               <th>Товари</th>
             </tr>
           </thead>
           <tbody>
-            <tr v-for="order in orders" :key="order.id">
+            <tr v-for="order in sortedOrders" :key="order.id">
               <td>{{ order.id }}</td>
               <td>{{ order.user_name }}</td>
               <td>{{ order.total }}</td>
@@ -151,24 +173,34 @@
       </div>
       
       <!-- Статистика -->
-      <div v-if="currentSection === 'stats' && userRole === 'admin'" class="stats-container">
-        <h2>Статистика</h2>
-        <ul>
-          <li>Кількість замовлень: {{ stats.total_orders }}</li>
-          <li>Загальний обсяг продажів: {{ stats.total_revenue }}</li>
-          <li>Середня вартість замовлення: {{ stats.avg_order_value }}</li>
-          <li>
-            Найпопулярніший товар: 
-            <span v-if="stats.most_popular_weapon">
-              {{ stats.most_popular_weapon.weapon_name }} ({{ stats.most_popular_weapon.total_quantity }} шт.)
-            </span>
-            <span v-else>
-              Немає даних
-            </span>
-          </li>
-          <li>Кількість товарів у наявності: {{ stats.total_weapons }}</li>
-        </ul>
+<div v-if="currentSection === 'stats' && userRole === 'admin'" class="stats-container">
+  <h2>Статистика</h2>
+  <div class="stats-grid">
+    <div class="stat-card">
+      <h3>Кількість замовлень</h3>
+      <p>{{ stats.total_orders }}</p>
+    </div>
+    <div class="stat-card">
+      <h3>Загальний обсяг продажів</h3>
+      <p>{{ stats.total_revenue }}</p>
+    </div>
+    <div class="stat-card">
+      <h3>Середня вартість замовлення</h3>
+      <p>{{ stats.avg_order_value }}</p>
+    </div>
+    <div class="stat-card">
+      <h3>Найпопулярніший товар</h3>
+      <p v-if="stats.most_popular_weapon">
+        {{ stats.most_popular_weapon.weapon_name }} ({{ stats.most_popular_weapon.total_quantity }} шт.)
+      </p>
+      <p v-else>Немає даних</p>
+    </div>
+    <div class="stat-card">
+      <h3>Кількість товарів у наявності</h3>
+      <p>{{ stats.total_weapons }}</p>
       </div>
+    </div>
+   </div>
       
     </main>
   </div>
@@ -179,7 +211,7 @@ export default {
   data() {
     return {
       currentSection: 'dashboard',
-      userRole: 'admin', // або 'user' в залежності від залогіненого користувача
+      userRole: 'admin', // або 'user'
       weapon: { name: '', description: '', price: '', quantity: '', image: '', category_id: '' },
       categories: [],
       weapons: [],
@@ -188,9 +220,98 @@ export default {
       editing: false,
       category: { id: null, name: '' },
       editingCategory: false,
+      // Параметри сортування для замовлень
+      sortKey: 'id',
+      sortOrder: 'asc',
+      // Параметри сортування для зброї
+      sortKeyWeapons: 'name',
+      sortOrderWeapons: 'asc',
+      // Параметри сортування для категорій
+      sortKeyCategories: 'name',
+      sortOrderCategories: 'asc',
     };
   },
+  computed: {
+    // Сортування для замовлень (як у попередньому прикладі)
+    sortedOrders() {
+      if (!this.orders) return [];
+      return this.orders.slice().sort((a, b) => {
+        let modifier = this.sortOrder === 'asc' ? 1 : -1;
+        let valueA = a[this.sortKey];
+        let valueB = b[this.sortKey];
+        if (!isNaN(valueA) && !isNaN(valueB)) {
+          return (Number(valueA) - Number(valueB)) * modifier;
+        }
+        valueA = valueA.toString().toLowerCase();
+        valueB = valueB.toString().toLowerCase();
+        if (valueA < valueB) return -1 * modifier;
+        if (valueA > valueB) return 1 * modifier;
+        return 0;
+      });
+    },
+    // Сортування для зброї
+    sortedWeapons() {
+      if (!this.weapons) return [];
+      return this.weapons.slice().sort((a, b) => {
+        let modifier = this.sortOrderWeapons === 'asc' ? 1 : -1;
+        let valueA = a[this.sortKeyWeapons];
+        let valueB = b[this.sortKeyWeapons];
+        if (!isNaN(valueA) && !isNaN(valueB)) {
+          return (Number(valueA) - Number(valueB)) * modifier;
+        }
+        valueA = valueA.toString().toLowerCase();
+        valueB = valueB.toString().toLowerCase();
+        if (valueA < valueB) return -1 * modifier;
+        if (valueA > valueB) return 1 * modifier;
+        return 0;
+      });
+    },
+    // Сортування для категорій
+    sortedCategories() {
+      if (!this.categories) return [];
+      return this.categories.slice().sort((a, b) => {
+        let modifier = this.sortOrderCategories === 'asc' ? 1 : -1;
+        let valueA = a[this.sortKeyCategories];
+        let valueB = b[this.sortKeyCategories];
+        if (!isNaN(valueA) && !isNaN(valueB)) {
+          return (Number(valueA) - Number(valueB)) * modifier;
+        }
+        valueA = valueA.toString().toLowerCase();
+        valueB = valueB.toString().toLowerCase();
+        if (valueA < valueB) return -1 * modifier;
+        if (valueA > valueB) return 1 * modifier;
+        return 0;
+      });
+    }
+  },
   methods: {
+    // Сортування для замовлень
+    sortBy(key) {
+      if (this.sortKey === key) {
+        this.sortOrder = this.sortOrder === 'asc' ? 'desc' : 'asc';
+      } else {
+        this.sortKey = key;
+        this.sortOrder = 'asc';
+      }
+    },
+    // Сортування для зброї
+    sortWeaponsBy(key) {
+      if (this.sortKeyWeapons === key) {
+        this.sortOrderWeapons = this.sortOrderWeapons === 'asc' ? 'desc' : 'asc';
+      } else {
+        this.sortKeyWeapons = key;
+        this.sortOrderWeapons = 'asc';
+      }
+    },
+    // Сортування для категорій
+    sortCategoriesBy(key) {
+      if (this.sortKeyCategories === key) {
+        this.sortOrderCategories = this.sortOrderCategories === 'asc' ? 'desc' : 'asc';
+      } else {
+        this.sortKeyCategories = key;
+        this.sortOrderCategories = 'asc';
+      }
+    },
     async fetchCategories() {
       const response = await fetch('http://localhost/weaponshop/php/adminpanel.php?categories=1', { credentials: 'include' });
       this.categories = await response.json();
@@ -307,6 +428,7 @@ export default {
   },
 };
 </script>
+
 
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Roboto&display=swap');
@@ -438,30 +560,45 @@ tr:nth-child(even) {
   background-color: #f2f2f2;
 }
 
-/* --- Стилі для сторінки статистики --- */
 .stats-container {
   background-color: #fff;
-  padding: 20px;
-  border-radius: 8px;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  padding: 30px;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   margin-bottom: 20px;
 }
 
 .stats-container h2 {
-  font-size: 24px;
-  margin-bottom: 15px;
+  font-size: 28px;
+  margin-bottom: 20px;
   text-align: center;
+  color: #333;
 }
 
-.stats-container ul {
-  list-style: none;
-  padding: 0;
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 20px;
 }
 
-.stats-container li {
+.stat-card {
   background-color: #f8f8f8;
+  padding: 20px;
+  border-radius: 8px;
+  text-align: center;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.stat-card h3 {
+  font-size: 20px;
   margin-bottom: 10px;
-  padding: 10px;
-  border-radius: 4px;
+  color: #4CAF50;
+}
+
+.stat-card p {
+  font-size: 18px;
+  margin: 0;
+  font-weight: bold;
+  color: #333;
 }
 </style>
