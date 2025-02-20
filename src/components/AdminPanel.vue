@@ -6,8 +6,9 @@
       <ul>
         <li @click="currentSection = 'dashboard'">Головна</li>
         <li @click="currentSection = 'weapons'">Зброя</li>
-        <!-- Показуємо категорії лише адміністратору -->
         <li v-if="userRole === 'admin'" @click="currentSection = 'categories'">Категорії</li>
+        <li v-if="userRole === 'admin'" @click="currentSection = 'orders'">Замовлення</li>
+        <li v-if="userRole === 'admin'" @click="currentSection = 'stats'">Статистика</li>
       </ul>
     </aside>
 
@@ -17,7 +18,7 @@
       <div v-if="currentSection === 'dashboard'">
         <h1>Вітаємо!</h1>
         <p v-if="userRole === 'admin'">
-          Оберіть розділ у меню зліва для роботи зі зброєю або категоріями.
+          Оберіть розділ у меню зліва для роботи зі зброєю, категоріями, замовленнями або статистикою.
         </p>
         <p v-else>
           Нижче наведено список зброї.
@@ -26,7 +27,6 @@
 
       <!-- Зброя -->
       <div v-if="currentSection === 'weapons'">
-        <!-- Форма для додавання/редагування показується лише адміністратору -->
         <div v-if="userRole === 'admin'">
           <h2>{{ editing ? 'Редагувати зброю' : 'Додати зброю' }}</h2>
           <form @submit.prevent="editing ? updateWeapon() : addWeapon()">
@@ -66,7 +66,6 @@
               <th>Ціна</th>
               <th>Кількість</th>
               <th>Категорія</th>
-              <!-- Кнопки дій відображаються лише адміністратору -->
               <th v-if="userRole === 'admin'">Дії</th>
             </tr>
           </thead>
@@ -86,7 +85,7 @@
         </table>
       </div>
 
-      <!-- Категорії (доступні лише адміністратору) -->
+      <!-- Категорії -->
       <div v-if="currentSection === 'categories' && userRole === 'admin'">
         <div>
           <h2>{{ editingCategory ? 'Редагувати категорію' : 'Додати категорію' }}</h2>
@@ -102,7 +101,6 @@
         <table>
           <thead>
             <tr>
-              <!-- Стовпець ID прибрано -->
               <th>Назва</th>
               <th>Дії</th>
             </tr>
@@ -119,6 +117,59 @@
         </table>
       </div>
       
+      <!-- Замовлення -->
+      <div v-if="currentSection === 'orders' && userRole === 'admin'">
+        <h2>Замовлення</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>ID Замовлення</th>
+              <th>ID користувача</th>
+              <th>Сума</th>
+              <th>Доставка</th>
+              <th>Оплата</th>
+              <th>Товари</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="order in orders" :key="order.id">
+              <td>{{ order.id }}</td>
+              <td>{{ order.user_name }}</td>
+              <td>{{ order.total }}</td>
+              <td>{{ order.shipping }}</td>
+              <td>{{ order.payment }}</td>
+              <td>
+                <ul>
+                  <li v-for="item in order.items" :key="item.weapon_id">
+                    {{ item.weapon_name }} ({{ item.quantity }} шт.)
+                  </li>
+                </ul>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      
+      <!-- Статистика -->
+      <div v-if="currentSection === 'stats' && userRole === 'admin'" class="stats-container">
+        <h2>Статистика</h2>
+        <ul>
+          <li>Кількість замовлень: {{ stats.total_orders }}</li>
+          <li>Загальний обсяг продажів: {{ stats.total_revenue }}</li>
+          <li>Середня вартість замовлення: {{ stats.avg_order_value }}</li>
+          <li>
+            Найпопулярніший товар: 
+            <span v-if="stats.most_popular_weapon">
+              {{ stats.most_popular_weapon.weapon_name }} ({{ stats.most_popular_weapon.total_quantity }} шт.)
+            </span>
+            <span v-else>
+              Немає даних
+            </span>
+          </li>
+          <li>Кількість товарів у наявності: {{ stats.total_weapons }}</li>
+        </ul>
+      </div>
+      
     </main>
   </div>
 </template>
@@ -128,14 +179,13 @@ export default {
   data() {
     return {
       currentSection: 'dashboard',
-      // Встановіть 'admin' або 'user' відповідно до ролі залогіненого користувача
-      userRole: 'admin',
+      userRole: 'admin', // або 'user' в залежності від залогіненого користувача
       weapon: { name: '', description: '', price: '', quantity: '', image: '', category_id: '' },
       categories: [],
       weapons: [],
+      orders: [],
+      stats: {},
       editing: false,
-
-      // Дані для роботи з категоріями
       category: { id: null, name: '' },
       editingCategory: false,
     };
@@ -148,6 +198,14 @@ export default {
     async fetchWeapons() {
       const response = await fetch('http://localhost/weaponshop/php/adminpanel.php', { credentials: 'include' });
       this.weapons = await response.json();
+    },
+    async fetchOrders() {
+      const response = await fetch('http://localhost/weaponshop/php/adminpanel.php?orders=1', { credentials: 'include' });
+      this.orders = await response.json();
+    },
+    async fetchStats() {
+      const response = await fetch('http://localhost/weaponshop/php/adminpanel.php?stats=1', { credentials: 'include' });
+      this.stats = await response.json();
     },
     async addWeapon() {
       await fetch('http://localhost/weaponshop/php/adminpanel.php', {
@@ -186,186 +244,224 @@ export default {
       this.weapon = { name: '', description: '', price: '', quantity: '', image: '', category_id: '' };
       this.editing = false;
     },
-
-// Методи для роботи з категоріями (доступні лише адміністратору)
-async addCategory() {
-  await fetch('http://localhost/weaponshop/php/adminpanel.php?entity=category', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    credentials: 'include',
-    body: JSON.stringify(this.category),
-  });
-  this.category = { id: null, name: '' };
-  this.fetchCategories();
-},
-editCategory(cat) {
-  this.category = { ...cat };
-  this.editingCategory = true;
-},
-async updateCategory() {
-  await fetch('http://localhost/weaponshop/php/adminpanel.php?entity=category', {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    credentials: 'include',
-    body: JSON.stringify(this.category),
-  });
-  this.cancelCategoryEdit();
-  this.fetchCategories();
-},
-async deleteCategory(id) {
-  const response = await fetch('http://localhost/weaponshop/php/adminpanel.php?entity=category', {
-    method: 'DELETE',
-    headers: { 'Content-Type': 'application/json' },
-    credentials: 'include',
-    body: JSON.stringify({ id }),
-  });
-  const result = await response.json();
-  if (result.error) {
-    // Виводимо повідомлення, що категорія використовується
-    alert(result.error);
-  } else {
-    this.fetchCategories();
-  }
-},
-cancelCategoryEdit() {
-  this.category = { id: null, name: '' };
-  this.editingCategory = false;
-},
+    async addCategory() {
+      await fetch('http://localhost/weaponshop/php/adminpanel.php?entity=category', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify(this.category),
+      });
+      this.category = { id: null, name: '' };
+      this.fetchCategories();
+    },
+    editCategory(cat) {
+      this.category = { ...cat };
+      this.editingCategory = true;
+    },
+    async updateCategory() {
+      await fetch('http://localhost/weaponshop/php/adminpanel.php?entity=category', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify(this.category),
+      });
+      this.cancelCategoryEdit();
+      this.fetchCategories();
+    },
+    async deleteCategory(id) {
+      const response = await fetch('http://localhost/weaponshop/php/adminpanel.php?entity=category', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ id }),
+      });
+      const result = await response.json();
+      if (result.error) {
+        alert(result.error);
+      } else {
+        this.fetchCategories();
+      }
+    },
+    cancelCategoryEdit() {
+      this.category = { id: null, name: '' };
+      this.editingCategory = false;
+    },
+  },
+  watch: {
+    currentSection(newSection) {
+      if (newSection === 'orders') {
+        this.fetchOrders();
+      }
+      if (newSection === 'stats') {
+        this.fetchStats();
+      }
+    }
   },
   mounted() {
     this.fetchCategories();
     this.fetchWeapons();
+    if (this.userRole === 'admin') {
+      this.fetchOrders();
+      this.fetchStats();
+    }
   },
 };
 </script>
 
-
-
 <style>
+@import url('https://fonts.googleapis.com/css2?family=Roboto&display=swap');
+
 * {
-margin: 0;
-padding: 0;
-box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Roboto', sans-serif;
 }
 
 html, body {
-height: 100%;
-overflow: auto; /* Додає загальну прокрутку */
+  height: 100%;
+  overflow: auto; /* Додає загальну прокрутку */
 }
 
 /* --- Фіксована бокова панель --- */
 .admin-container {
-display: flex;
-min-height: 100vh; /* Щоб контейнер ріс разом із контентом */
+  display: flex;
+  min-height: 100vh; /* Щоб контейнер ріс разом із контентом */
 }
 
 .sidebar {
-width: 200px;
-background-color: #333;
-color: white;
-padding: 20px;
-position: auto;
-height: auto;
-top: 0;
-left: 0;
-overflow-y: auto;
+  width: 200px;
+  background-color: #333;
+  color: white;
+  padding: 20px;
+  position: auto;
+  height: auto;
+  top: 0;
+  left: 0;
+  overflow-y: auto;
 }
 
 .sidebar h2 {
-margin-bottom: 20px;
-text-align: center;
+  margin-bottom: 20px;
+  text-align: center;
 }
 
 .sidebar ul {
-list-style-type: none;
-padding: 0;
+  list-style-type: none;
+  padding: 0;
 }
 
 .sidebar li {
-padding: 10px;
-cursor: pointer;
-transition: background-color 0.3s;
+  padding: 10px;
+  cursor: pointer;
+  transition: background-color 0.3s;
 }
 
 .sidebar li:hover {
-background-color: #555;
+  background-color: #555;
 }
 
 /* --- Контентна частина --- */
 .content {
-flex: 1;
-padding: 20px;
-margin-left: 20px; /* Відступ під sidebar */
-overflow: visible; /* Забирає зайвий скрол у контенті */
+  flex: 1;
+  padding: 20px;
+  margin-left: 20px; /* Відступ під sidebar */
+  overflow: visible; /* Забирає зайвий скрол у контенті */
 }
 
 .content h1 {
-color: #333;
-margin-bottom: 20px;
+  color: #333;
+  margin-bottom: 20px;
 }
 
 /* --- Форма додавання товару --- */
 .form-container {
-background: white;
-padding: 20px;
-border-radius: 5px;
-box-shadow: 0 0 10px rgba(0,0,0,0.1);
-margin-bottom: 20px;
+  background: white;
+  padding: 20px;
+  border-radius: 5px;
+  box-shadow: 0 0 10px rgba(0,0,0,0.1);
+  margin-bottom: 20px;
 }
 
 label {
-display: block;
-margin-top: 10px;
-color: #666;
+  display: block;
+  margin-top: 10px;
+  color: #666;
 }
 
-input, select {
-width: 100%;
-padding: 8px;
-margin-top: 5px;
-margin-bottom: 10px;
-border: 1px solid #000000;
-border-radius: 4px;
+input, select, textarea {
+  width: 100%;
+  padding: 8px;
+  margin-top: 5px;
+  margin-bottom: 10px;
+  border: 1px solid #000;
+  border-radius: 4px;
 }
 
 button {
-background-color: #4CAF50;
-color: white;
-padding: 10px 15px;
-border: solid;
-border-radius: 8px;
-cursor: pointer;
- margin-bottom: 20px
+  background-color: #4CAF50;
+  color: white;
+  padding: 10px 15px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  margin-bottom: 20px;
 }
 
 button:hover {
-background-color: #45a049;
+  background-color: #45a049;
 }
 
 /* --- Таблиця зі списком товарів --- */
 .table-container {
-overflow-x: auto; /* Прокрутка, якщо ширина таблиці більше екрану */
+  overflow-x: auto; /* Прокрутка, якщо ширина таблиці більше екрану */
 }
 
 table {
-width: 100%;
-border-collapse: collapse;
-margin-top: 20px;
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
 }
 
 th, td {
-border: 1px solid #000000;
-padding: 8px;
-text-align: left;
+  border: 1px solid #000;
+  padding: 8px;
+  text-align: left;
 }
 
 th {
-background-color: #4CAF50;
-color: white;
+  background-color: #4CAF50;
+  color: white;
 }
 
 tr:nth-child(even) {
-background-color: #f2f2f2;
+  background-color: #f2f2f2;
 }
 
-</style>  
+/* --- Стилі для сторінки статистики --- */
+.stats-container {
+  background-color: #fff;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  margin-bottom: 20px;
+}
+
+.stats-container h2 {
+  font-size: 24px;
+  margin-bottom: 15px;
+  text-align: center;
+}
+
+.stats-container ul {
+  list-style: none;
+  padding: 0;
+}
+
+.stats-container li {
+  background-color: #f8f8f8;
+  margin-bottom: 10px;
+  padding: 10px;
+  border-radius: 4px;
+}
+</style>

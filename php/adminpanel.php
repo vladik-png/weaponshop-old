@@ -50,6 +50,58 @@ if (!isset($_SESSION['user']) || $_SESSION['user']['role'] !== 'admin') {
     exit;
 }
 
+// Отримання статистики
+if (isset($_GET['stats'])) {
+    $stats = [];
+
+    // Кількість замовлень
+    $stmt = $pdo->query("SELECT COUNT(*) AS total_orders FROM orders");
+    $stats['total_orders'] = $stmt->fetch()['total_orders'];
+
+    // Загальний обсяг продажів
+    $stmt = $pdo->query("SELECT IFNULL(SUM(total),0) AS total_revenue FROM orders");
+    $stats['total_revenue'] = $stmt->fetch()['total_revenue'];
+
+    // Середня вартість замовлення
+    $stmt = $pdo->query("SELECT IFNULL(AVG(total),0) AS avg_order_value FROM orders");
+    $stats['avg_order_value'] = $stmt->fetch()['avg_order_value'];
+
+    // Найпопулярніший товар (за сумою проданих одиниць)
+    $stmt = $pdo->query("SELECT w.name AS weapon_name, SUM(oi.quantity) AS total_quantity 
+                         FROM order_items oi 
+                         JOIN weapons w ON oi.weapon_id = w.id 
+                         GROUP BY oi.weapon_id 
+                         ORDER BY total_quantity DESC 
+                         LIMIT 1");
+    $stats['most_popular_weapon'] = $stmt->fetch();
+
+    // Кількість товарів у наявності
+    $stmt = $pdo->query("SELECT COUNT(*) AS total_weapons FROM weapons");
+    $stats['total_weapons'] = $stmt->fetch()['total_weapons'];
+
+    echo json_encode($stats);
+    exit;
+}
+
+// Обробка запитів для замовлень
+if (isset($_GET['orders'])) {
+    // Отримуємо всі замовлення з таблиці orders, приєднуючи ім'я користувача з таблиці users
+    $stmt = $pdo->query("SELECT o.*, u.username AS user_name FROM orders o LEFT JOIN users u ON o.user_id = u.id");
+    $orders = $stmt->fetchAll();
+    
+    // Для кожного замовлення отримуємо відповідні товари з order_items та дані зброї
+    foreach ($orders as &$order) {
+        $stmtItems = $pdo->prepare("SELECT oi.*, w.name AS weapon_name, w.image 
+                                    FROM order_items oi 
+                                    LEFT JOIN weapons w ON oi.weapon_id = w.id 
+                                    WHERE oi.order_id = ?");
+        $stmtItems->execute([$order['id']]);
+        $order['items'] = $stmtItems->fetchAll();
+    }
+    echo json_encode($orders);
+    exit;
+}
+
 // Обробка запитів для роботи з категоріями (додавання, редагування, видалення)
 if (isset($_GET['entity']) && $_GET['entity'] === 'category') {
     $data = json_decode(file_get_contents('php://input'), true);
@@ -100,14 +152,12 @@ if (isset($_GET['entity']) && $_GET['entity'] === 'category') {
         exit;
     }
     
-
     http_response_code(405);
     echo json_encode(['error' => 'Метод не дозволений']);
     exit;
 }
 
 // Обробка запитів для зброї
-
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     $stmt = $pdo->query("SELECT weapons.*, categories.name AS category_name FROM weapons 
                          LEFT JOIN categories ON weapons.category_id = categories.id");
@@ -126,7 +176,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $stmt = $pdo->prepare("INSERT INTO weapons (name, description, price, quantity, image, category_id) 
                            VALUES (?, ?, ?, ?, ?, ?)");
     $stmt->execute([$data['name'], $data['description'], $data['price'], $data['quantity'], $data['image'], $data['category_id']]);
-
     echo json_encode(['success' => true]);
     exit;
 }
@@ -141,7 +190,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'DELETE') {
     
     $stmt = $pdo->prepare("DELETE FROM weapons WHERE id = ?");
     $stmt->execute([$data['id']]);
-    
     echo json_encode(['success' => true]);
     exit;
 }
@@ -157,10 +205,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'PUT') {
     $stmt = $pdo->prepare("UPDATE weapons SET name = ?, description = ?, price = ?, quantity = ?, image = ?, category_id = ? 
                            WHERE id = ?");
     $stmt->execute([$data['name'], $data['description'], $data['price'], $data['quantity'], $data['image'], $data['category_id'], $data['id']]);
-    
     echo json_encode(['success' => true]);
     exit;
 }
 
 http_response_code(405);
 echo json_encode(['error' => 'Метод не дозволений']);
+?>
