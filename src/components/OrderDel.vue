@@ -56,27 +56,20 @@
           <input type="radio" value="Нова Пошта" v-model="order.shipping" />
           <span>Нова Пошта</span>
         </label>
-        <label>
-          <input type="radio" value="Кур'єр" v-model="order.shipping" />
-          <span>Кур'єрська доставка</span>
-        </label>
       </div>
       <hr />
       <h2>Оплата</h2>
-<div class="radio-options payment-options">
-  <label>
-    <input type="radio" value="Оплата банківською картою" v-model="order.payment" />
-    <span>Оплата банківською картою</span>
-  </label>
-  <label>
-    <input type="radio" value="Оплата при отриманні" v-model="order.payment" />
-    <span>Оплата при отриманні</span>
-  </label>
-  <label>
-    <input type="radio" value="Оплата через термінал" v-model="order.payment" />
-    <span>Оплата через термінал</span>
-  </label>
-</div>
+      <div class="radio-options payment-options">
+        <label>
+          <input type="radio" value="Оплата банківською картою" v-model="order.payment" />
+          <span>Оплата банківською картою</span>
+        </label>
+        <label>
+          <input type="radio" value="Оплата при отриманні" v-model="order.payment" />
+          <span>Оплата при отриманні</span>
+        </label>
+        
+      </div>
     </div>
 
     <div class="order-right">
@@ -129,12 +122,10 @@ export default {
   },
   methods: {
     validateEmail(email) {
-      // Проста перевірка електронної пошти через регулярний вираз
       const re = /\S+@\S+\.\S+/;
       return re.test(email);
     },
     async submitOrder() {
-      // Перевірка особистих даних
       if (this.order.name.length < 3) {
         this.hasNameError = true;
       } else {
@@ -150,15 +141,13 @@ export default {
       } else {
         this.hasEmailError = false;
       }
-      
-      // Перевірка адреси доставки
+
       if (!this.address.country || !this.address.city || !this.address.branch) {
         this.hasAddressError = true;
       } else {
         this.hasAddressError = false;
       }
 
-      // Якщо є помилки — припинити виконання
       if (this.hasNameError || this.hasPhoneError || this.hasEmailError || this.hasAddressError) {
         return;
       }
@@ -190,6 +179,12 @@ export default {
 
         const data = await response.json();
         this.message = data.message;
+
+        // Автоматичне перенаправлення через 5 секунд
+        setTimeout(() => {
+          this.$router ? this.$router.push("/") : (window.location.href = "/");
+        }, 5000);
+
       } catch (error) {
         console.error("Помилка при оформленні замовлення:", error);
         this.message = "Сталася помилка при оформленні замовлення.";
@@ -198,6 +193,7 @@ export default {
   }
 };
 </script>
+
 
 <style scoped>
 .order-wrapper {

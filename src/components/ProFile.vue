@@ -55,7 +55,7 @@
           <div v-if="selectedOrder && selectedOrder.id === order.id" class="order-details">
             <h4>Товари в замовленні:</h4>
             <ul>
-              <li v-for="item in parseItems(order.items)" :key="item.id">
+              <li v-for="item in order.items" :key="item.id">
                 {{ item.name }} – Кількість: {{ item.quantity }} – Ціна: {{ item.price }}
               </li>
             </ul>
@@ -163,15 +163,6 @@ const toggleOrderDetails = (order) => {
   }
 };
 
-const parseItems = (items) => {
-  try {
-    return JSON.parse(items);
-  } catch (e) {
-    console.error("Помилка парсингу товарів:", e);
-    return [];
-  }
-};
-
 const saveAddress = async () => {
   if (!newCountry.value || !newCity.value || !newBranch.value || !newPhoneNumber.value) {
     message.value = "Будь ласка, заповніть всі поля.";
@@ -242,6 +233,7 @@ const toggleEdit = () => {
 
 onMounted(fetchUserData);
 </script>
+
 
 <style scoped>
 /* Стилі залишаються без змін */
